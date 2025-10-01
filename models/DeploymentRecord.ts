@@ -2,7 +2,6 @@ import mongoose, { Query, Schema, type Document, type Types } from "mongoose";
 
 export interface IDeploymentRecord extends Document {
   date: Date;
-  zone: Types.ObjectId;
   unit: Types.ObjectId;
   policeStation: Types.ObjectId;
   dayDutyMale: number;
@@ -19,7 +18,6 @@ export interface IDeploymentRecord extends Document {
 const DeploymentRecordSchema = new Schema<IDeploymentRecord>(
   {
     date: { type: Date, required: true },
-    zone: { type: Schema.Types.ObjectId, ref: "Zone", required: true },
     unit: { type: Schema.Types.ObjectId, ref: "Unit", required: true },
     policeStation: {
       type: Schema.Types.ObjectId,

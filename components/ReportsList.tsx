@@ -17,7 +17,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 interface DeploymentRecord {
   _id: string;
   date: string;
-  zone: { name: string };
   unit: { name: string };
   policeStation: { name: string };
   dayDutyMale: number;
@@ -160,7 +159,6 @@ export default function ReportsList() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Zone</TableHead>
                     <TableHead>Unit</TableHead>
                     <TableHead>Police Station</TableHead>
                     <TableHead>Day Male</TableHead>
@@ -175,7 +173,6 @@ export default function ReportsList() {
                 <TableBody>
                   {reports.map((report) => (
                     <TableRow key={report._id}>
-                      <TableCell>{report.zone?.name}</TableCell>
                       <TableCell>{report.unit?.name}</TableCell>
                       <TableCell>{report.policeStation?.name}</TableCell>
                       <TableCell>{report.dayDutyMale}</TableCell>

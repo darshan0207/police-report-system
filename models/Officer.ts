@@ -5,7 +5,6 @@ interface OfficerDocument extends Document {
   badgeNumber: string;
   rank: string;
   photo?: string | null;
-  zone: mongoose.Types.ObjectId;
   unit?: mongoose.Types.ObjectId | null;
   policeStation?: mongoose.Types.ObjectId | null;
   contactNumber?: string;
@@ -21,7 +20,6 @@ const OfficerSchema = new mongoose.Schema<OfficerDocument>(
     badgeNumber: { type: String, required: true, unique: true, trim: true },
     rank: { type: String, required: true, trim: true },
     photo: { type: String, default: null },
-    zone: { type: mongoose.Schema.Types.ObjectId, ref: "Zone", required: true },
     unit: { type: mongoose.Schema.Types.ObjectId, ref: "Unit", default: null },
     policeStation: {
       type: mongoose.Schema.Types.ObjectId,
@@ -37,7 +35,7 @@ const OfficerSchema = new mongoose.Schema<OfficerDocument>(
 
 // Tell TS that `this` is a mongoose.Query so we can call .populate()
 OfficerSchema.pre(/^find/, function (this: Query<any, OfficerDocument>, next) {
-  this.populate("zone", "name")
+  this.populate("name")
     .populate("unit", "name")
     .populate("policeStation", "name");
   next();

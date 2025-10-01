@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import Unit from "@/models/Unit";
 import PoliceStation from "@/models/PoliceStation";
 
@@ -12,7 +12,7 @@ export async function PUT(
   // const session = await getServerSession(authOptions);
   // if (
   //   !session ||
-  //   (session.user.role !== "admin" && session.user.role !== "zone")
+  //   (session.user.role !== "admin")
   // ) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
@@ -23,9 +23,9 @@ export async function PUT(
   try {
     const unit = await Unit.findByIdAndUpdate(
       params.id,
-      { name: body.name, zone: body.zone, type: body.type },
+      { name: body.name, type: body.type },
       { new: true, runValidators: true }
-    ).populate("zone");
+    );
 
     if (!unit) {
       return NextResponse.json({ error: "Unit not found" }, { status: 404 });
@@ -48,7 +48,7 @@ export async function DELETE(
   // const session = await getServerSession(authOptions);
   // if (
   //   !session ||
-  //   (session.user.role !== "admin" && session.user.role !== "zone")
+  //   (session.user.role !== "admin")
   // ) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }

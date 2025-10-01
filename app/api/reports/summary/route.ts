@@ -3,7 +3,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import DeploymentRecord from "@/models/DeploymentRecord";
-import Zone from "@/models/Zone";
 import Unit from "@/models/Unit";
 
 export async function GET(request: NextRequest) {
@@ -33,20 +32,17 @@ export async function GET(request: NextRequest) {
     const deploymentRecords = await DeploymentRecord.find({
       date: { $gte: startOfDay, $lte: endOfDay },
     }).populate([
-      { path: "zone", model: Zone },
       { path: "unit", model: Unit },
       { path: "policeStation" },
       { path: "verifyingOfficer" },
     ]);
 
     // Get all zones for structure
-    const zones = await Zone.find({}).sort({ name: 1 });
-    const units = await Unit.find({}).populate("zone").sort({ name: 1 });
+    const units = await Unit.find({}).sort({ name: 1 });
 
     // Initialize summary structure
     const summary = {
       date: targetDate,
-      zoneWiseSummary: {} as any,
       grandTotals: {
         dayDuty: 0,
         nightDuty: 0,
@@ -125,8 +121,6 @@ export async function GET(request: NextRequest) {
           verifyingOfficer: record.verifyingOfficer?.name || "Unknown",
         });
       });
-
-      summary.zoneWiseSummary[zoneName] = zoneSummary;
 
       // Add to grand totals
       summary.grandTotals.dayDuty += zoneSummary.dayDuty;

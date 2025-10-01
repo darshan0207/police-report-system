@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import Officer from "@/models/Officer";
 
 export async function PUT(
@@ -22,7 +22,6 @@ export async function PUT(
       badgeNumber,
       rank,
       photo,
-      zone,
       unit,
       policeStation,
       contactNumber,
@@ -37,7 +36,6 @@ export async function PUT(
         badgeNumber,
         rank,
         photo,
-        zone,
         unit: unit || null,
         policeStation: policeStation || null,
         contactNumber,

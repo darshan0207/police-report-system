@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import PoliceStation from "@/models/PoliceStation";
 
 export async function PUT(
@@ -11,7 +11,7 @@ export async function PUT(
   // const session = await getServerSession(authOptions);
   // if (
   //   !session ||
-  //   (session.user.role !== "admin" && session.user.role !== "zone")
+  //   (session.user.role !== "admin")
   // ) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
@@ -19,7 +19,6 @@ export async function PUT(
   const session = {
     user: {
       role: "admin",
-      zone: {},
     },
   };
 
@@ -29,7 +28,6 @@ export async function PUT(
   try {
     const updateData: any = {
       name: body.name,
-      zone: body.zone,
       address: body.address,
     };
 
@@ -47,7 +45,7 @@ export async function PUT(
         new: true,
         runValidators: true,
       }
-    ).populate("zone unit");
+    ).populate("unit");
 
     if (!station) {
       return NextResponse.json(
@@ -73,7 +71,7 @@ export async function DELETE(
   // const session = await getServerSession(authOptions);
   // if (
   //   !session ||
-  //   (session.user.role !== "admin" && session.user.role !== "zone")
+  //   (session.user.role !== "admin")
   // ) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import PoliceStation from "@/models/PoliceStation";
 
 export async function GET() {
@@ -12,7 +12,6 @@ export async function GET() {
   const session = {
     user: {
       role: "admin",
-      zone: {},
       unit: {},
     },
   };
@@ -20,14 +19,12 @@ export async function GET() {
   await connectDB();
 
   let filter = {};
-  if (session.user.role === "zone") {
-    filter = { zone: session.user.zone };
-  } else if (session.user.role === "unit") {
+  if (session.user.role === "unit") {
     filter = { unit: session.user.unit };
   }
 
   const stations = await PoliceStation.find(filter)
-    .populate("zone unit")
+    .populate("unit")
     .sort({ name: 1 });
   return NextResponse.json(stations);
 }
@@ -37,14 +34,10 @@ export async function POST(request: NextRequest) {
   const session = {
     user: {
       role: "admin",
-      zone: {},
     },
   };
 
-  if (
-    !session ||
-    (session.user.role !== "admin" && session.user.role !== "zone")
-  ) {
+  if (!session || session.user.role !== "admin") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import Officer from "@/models/Officer";
 
 export async function GET(request: NextRequest) {
@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
     const session = {
       user: {
         role: "admin",
-        zone: {},
         unit: {},
       },
     };
@@ -22,21 +21,17 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const { searchParams } = new URL(request.url);
-    const zone = searchParams.get("zone");
     const unit = searchParams.get("unit");
     const station = searchParams.get("station");
 
     const query: any = { isActive: true };
 
     // Apply role-based filtering
-    if (session.user.role === "zone" && session.user.zone) {
-      query.zone = session.user.zone;
-    } else if (session.user.role === "unit" && session.user.unit) {
+    if (session.user.role === "unit" && session.user.unit) {
       query.unit = session.user.unit;
     }
 
     // Apply additional filters
-    if (zone) query.zone = zone;
     if (unit) query.unit = unit;
     if (station) query.policeStation = station;
 
@@ -66,14 +61,13 @@ export async function POST(request: NextRequest) {
       badgeNumber,
       rank,
       photo,
-      zone,
       unit,
       policeStation,
       contactNumber,
       email,
     } = body;
 
-    if (!name || !badgeNumber || !rank || !zone) {
+    if (!name || !badgeNumber || !rank) {
       return NextResponse.json(
         { error: "Missing required fields" },
         { status: 400 }
@@ -85,7 +79,6 @@ export async function POST(request: NextRequest) {
       badgeNumber,
       rank,
       photo,
-      zone,
       unit: unit || null,
       policeStation: policeStation || null,
       contactNumber,

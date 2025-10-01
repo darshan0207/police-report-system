@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
-import connectDB from "@/lib/mongodb";
-import Zone from "@/models/Zone";
+import { connectDB } from "@/lib/mongodb";
+import DutyType from "@/models/DutyType";
 import Unit from "@/models/Unit";
 import PoliceStation from "@/models/PoliceStation";
 
@@ -19,21 +19,24 @@ export async function PUT(
   await connectDB();
 
   try {
-    const zone = await Zone.findByIdAndUpdate(
+    const dutyType = await DutyType.findByIdAndUpdate(
       params.id,
       { name: body.name, description: body.description },
       { new: true, runValidators: true }
     );
 
-    if (!zone) {
-      return NextResponse.json({ error: "Zone not found" }, { status: 404 });
+    if (!dutyType) {
+      return NextResponse.json(
+        { error: "DutyType not found" },
+        { status: 404 }
+      );
     }
 
-    return NextResponse.json(zone);
+    return NextResponse.json(dutyType);
   } catch (error) {
-    console.error("Error updating zone:", error);
+    console.error("Error updating duty type:", error);
     return NextResponse.json(
-      { error: "Failed to update zone" },
+      { error: "Failed to update duty type" },
       { status: 500 }
     );
   }
@@ -51,26 +54,29 @@ export async function DELETE(
   await connectDB();
 
   try {
-    // Delete all police stations in this zone
-    await PoliceStation.deleteMany({ zone: params.id });
+    // Delete all police stations in this dutyType
+    await PoliceStation.deleteMany({ dutyType: params.id });
 
-    // Delete all units in this zone
-    await Unit.deleteMany({ zone: params.id });
+    // Delete all units in this dutyType
+    await Unit.deleteMany({ dutyType: params.id });
 
-    // Delete the zone
-    const zone = await Zone.findByIdAndDelete(params.id);
+    // Delete the dutyType
+    const dutyType = await DutyType.findByIdAndDelete(params.id);
 
-    if (!zone) {
-      return NextResponse.json({ error: "Zone not found" }, { status: 404 });
+    if (!dutyType) {
+      return NextResponse.json(
+        { error: "dutyType not found" },
+        { status: 404 }
+      );
     }
 
     return NextResponse.json({
-      message: "Zone and associated data deleted successfully",
+      message: "DutyType and associated data deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting zone:", error);
+    console.error("Error deleting dutyType:", error);
     return NextResponse.json(
-      { error: "Failed to delete zone" },
+      { error: "Failed to delete dutyType" },
       { status: 500 }
     );
   }

@@ -26,8 +26,8 @@ export default function UnitDashboard() {
           Sign Out
         </Button>
       </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <ReportForm />
+      {/* <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="reports">Unit Reports</TabsTrigger>
           <TabsTrigger value="create">Create Report</TabsTrigger>
@@ -65,7 +65,7 @@ export default function UnitDashboard() {
         <TabsContent value="summary" className="mt-6">
           <SummaryReport />
         </TabsContent>
-      </Tabs>
+      </Tabs> */}
     </div>
   );
 }

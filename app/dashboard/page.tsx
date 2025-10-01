@@ -4,7 +4,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import AdminDashboard from "@/components/AdminDashboard";
-import ZoneDashboard from "@/components/ZoneDashboard";
 import UnitDashboard from "@/components/UnitDashboard";
 
 export default function DashboardPage() {
@@ -31,8 +30,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <AdminDashboard />
-      {/* {role === "zone" && <ZoneDashboard />}
-      {role === "unit" && <UnitDashboard />} */}
+      {/* {role === "unit" && <UnitDashboard />} */}
     </div>
   );
 }

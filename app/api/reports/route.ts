@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 // import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth";
-import connectDB from "@/lib/mongodb";
+import { connectDB } from "@/lib/mongodb";
 import DeploymentRecord from "@/models/DeploymentRecord";
 
 export async function GET(request: NextRequest) {
@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
   const session = {
     user: {
       role: "admin",
-      zone: {},
       unit: {},
     },
   };
@@ -27,14 +26,12 @@ export async function GET(request: NextRequest) {
   if (date) filter.date = date;
 
   // Apply role-based filtering
-  if (session.user.role === "zone") {
-    filter.zone = session.user.zone;
-  } else if (session.user.role === "unit") {
+  if (session.user.role === "unit") {
     filter.unit = session.user.unit;
   }
 
   const deployments = await DeploymentRecord.find(filter)
-    .populate("zone unit policeStation verifyingOfficer")
+    .populate("unit policeStation verifyingOfficer")
     .sort({ createdAt: -1 });
 
   return NextResponse.json({ deployments });
@@ -49,7 +46,6 @@ export async function POST(request: NextRequest) {
   const session = {
     user: {
       role: "admin",
-      zone: {},
       unit: {},
     },
   };
@@ -68,7 +64,6 @@ export async function POST(request: NextRequest) {
   const dailyDoc = await DeploymentRecord.findOneAndUpdate(
     {
       date: date,
-      zone: deployments.zone,
       unit: deployments.unit,
       policeStation: deployments.policeStation,
     },

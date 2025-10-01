@@ -17,66 +17,54 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface Zone {
-  _id: string;
-  name: string;
-}
-
 interface Unit {
   _id: string;
   name: string;
-  zone: { _id: string; name: string };
 }
 
 interface PoliceStation {
   _id: string;
   name: string;
-  zone: { _id: string; name: string };
   unit?: string;
 }
 
+interface DutyType {
+  _id: string;
+  name: string;
+}
 interface Officer {
   _id: string;
   name: string;
   badgeNumber: string;
   rank: string;
   photo?: string;
-  zone: string;
   unit?: string;
   policeStation?: string;
   isActive: boolean;
 }
 
 interface DeploymentRow {
-  zone: string;
   unit: string;
   policeStation: string;
-  dayDutyMale: number;
-  dayDutyFemale: number;
-  nightDutyMale: number;
-  nightDutyFemale: number;
-  dayTotalPhotos: number;
-  nightTotalPhotos: number;
+  dutyType: string;
+  dutyCount: number;
+  totalPhotos: number;
   verifyingOfficer: string;
   remarks?: string;
 }
 
 export default function ReportForm() {
-  const [zones, setZones] = useState<Zone[]>([]);
   const [units, setUnits] = useState<Unit[]>([]);
   const [stations, setStations] = useState<PoliceStation[]>([]);
   const [officers, setOfficers] = useState<Officer[]>([]);
+  const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [deployments, setDeployments] = useState<DeploymentRow>({
-    zone: "",
     unit: "",
     policeStation: "",
-    dayDutyMale: 0,
-    dayDutyFemale: 0,
-    nightDutyMale: 0,
-    nightDutyFemale: 0,
-    dayTotalPhotos: 0,
-    nightTotalPhotos: 0,
+    dutyType: "",
+    dutyCount: 0,
+    totalPhotos: 0,
     verifyingOfficer: "",
     remarks: "",
   });
@@ -84,14 +72,14 @@ export default function ReportForm() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/api/zones").then((r) => r.json()),
       fetch("/api/units").then((r) => r.json()),
       fetch("/api/police-stations").then((r) => r.json()),
+      fetch("/api/duty-type").then((r) => r.json()),
       fetch("/api/officers").then((r) => r.json()),
-    ]).then(([z, u, p, o]) => {
-      setZones(z);
+    ]).then(([u, p, d, o]) => {
       setUnits(u);
       setStations(p);
+      setDutyTypes(d);
       setOfficers(o.filter((officer: Officer) => officer.isActive));
     });
   }, []);
@@ -117,15 +105,11 @@ export default function ReportForm() {
       if (response.ok) {
         alert("Report saved successfully!");
         setDeployments({
-          zone: "",
           unit: "",
           policeStation: "",
-          dayDutyMale: 0,
-          dayDutyFemale: 0,
-          nightDutyMale: 0,
-          nightDutyFemale: 0,
-          dayTotalPhotos: 0,
-          nightTotalPhotos: 0,
+          dutyType: "",
+          dutyCount: 0,
+          totalPhotos: 0,
           verifyingOfficer: "",
           remarks: "",
         });
@@ -166,25 +150,6 @@ export default function ReportForm() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
-                <Label>Zone</Label>
-                <Select
-                  // value={deployment.zone}
-                  onValueChange={(value) => updateDeployment("zone", value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select Zone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {zones.map((zone) => (
-                      <SelectItem key={zone._id} value={zone._id}>
-                        {zone.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
                 <Label>Unit</Label>
                 <Select
                   // value={deployment.unit}
@@ -194,13 +159,11 @@ export default function ReportForm() {
                     <SelectValue placeholder="Select Unit" />
                   </SelectTrigger>
                   <SelectContent>
-                    {units
-                      // .filter((u) => u.zone?._id === deployment.zone)
-                      .map((unit) => (
-                        <SelectItem key={unit._id} value={unit._id}>
-                          {unit.name}
-                        </SelectItem>
-                      ))}
+                    {units.map((unit) => (
+                      <SelectItem key={unit._id} value={unit._id}>
+                        {unit.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -217,95 +180,57 @@ export default function ReportForm() {
                     <SelectValue placeholder="Select Station" />
                   </SelectTrigger>
                   <SelectContent>
-                    {stations
-                      // .filter((s) => s.zone?._id === deployment.zone)
-                      .map((station) => (
-                        <SelectItem key={station._id} value={station._id}>
-                          {station.name}
-                        </SelectItem>
-                      ))}
+                    {stations.map((station) => (
+                      <SelectItem key={station._id} value={station._id}>
+                        {station.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Duty Type</Label>
+                <Select
+                  // value={deployment.unit}
+                  onValueChange={(value) => updateDeployment("dutyType", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Duty Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dutyTypes.map((dutyType) => (
+                      <SelectItem key={dutyType._id} value={dutyType._id}>
+                        {dutyType.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-4">
               <div>
-                <Label>Day Duty Male</Label>
+                <Label>Duty</Label>
                 <Input
                   type="number"
                   // value={deployment.dayDutyMale}
                   onChange={(e) =>
                     updateDeployment(
-                      "dayDutyMale",
+                      "dutyCount",
                       Number.parseInt(e.target.value) || 0
                     )
                   }
                 />
               </div>
               <div>
-                <Label>Day Duty Female</Label>
-                <Input
-                  type="number"
-                  // value={deployment.dayDutyFemale}
-                  onChange={(e) =>
-                    updateDeployment(
-                      "dayDutyFemale",
-                      Number.parseInt(e.target.value) || 0
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <Label>Night Duty Male</Label>
-                <Input
-                  type="number"
-                  // value={deployment.nightDutyMale}
-                  onChange={(e) =>
-                    updateDeployment(
-                      "nightDutyMale",
-                      Number.parseInt(e.target.value) || 0
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <Label>Night Duty Female</Label>
-                <Input
-                  type="number"
-                  // value={deployment.nightDutyFemale}
-                  onChange={(e) =>
-                    updateDeployment(
-                      "nightDutyFemale",
-                      Number.parseInt(e.target.value) || 0
-                    )
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Day Total Photos</Label>
+                <Label>Total Photos</Label>
                 <Input
                   type="number"
                   // value={deployment.dayTotalPhotos}
                   onChange={(e) =>
                     updateDeployment(
-                      "dayTotalPhotos",
-                      Number.parseInt(e.target.value) || 0
-                    )
-                  }
-                />
-              </div>
-              <div>
-                <Label>Night Total Photos</Label>
-                <Input
-                  type="number"
-                  // value={deployment.nightTotalPhotos}
-                  onChange={(e) =>
-                    updateDeployment(
-                      "nightTotalPhotos",
+                      "totalPhotos",
                       Number.parseInt(e.target.value) || 0
                     )
                   }
