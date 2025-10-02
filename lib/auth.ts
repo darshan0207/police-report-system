@@ -24,19 +24,14 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          console.log("User not found or inactive:", credentials.email);
           return null;
         }
-
-        console.log("Found user:", user.email);
-        console.log("Stored password hash exists:", !!user.password);
 
         // Compare passwords
         const isPasswordValid = await bcrypt.compare(
           credentials.password,
           user.password
         );
-        console.log("Password valid:", isPasswordValid);
 
         if (isPasswordValid) {
           return {
