@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Table,
   TableBody,
@@ -17,77 +19,93 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MapPin, Pencil, Trash2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { unitSchema, UnitFormData } from "@/lib/schemas/unit";
 
 interface Unit {
   _id: string;
   name: string;
-  type?: string;
+  type: string;
 }
 
 interface UnitsTableProps {
   units: Unit[];
-  onUnitUpdated: () => void;
-  onUnitDeleted: () => void;
+  onUpdated: () => void;
+  onDeleted: () => void;
 }
 
 export default function UnitsTable({
   units,
-  onUnitUpdated,
-  onUnitDeleted,
+  onUpdated,
+  onDeleted,
 }: UnitsTableProps) {
   const [editingUnit, setEditingUnit] = useState<Unit | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const updateUnit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm<UnitFormData>({
+    resolver: zodResolver(unitSchema),
+    defaultValues: {
+      name: "",
+      type: "",
+    },
+  });
+
+  const handleEditClick = (unit: Unit) => {
+    setEditingUnit(unit);
+    setValue("name", unit.name);
+    setValue("type", unit.type || "");
+    setEditDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setEditDialogOpen(false);
+    setEditingUnit(null);
+    reset();
+  };
+
+  const updateUnit = async (data: UnitFormData) => {
     if (!editingUnit) return;
 
+    setIsLoading(true);
     try {
       const response = await fetch(`/api/units/${editingUnit._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editingUnit.name,
-          type: editingUnit.type,
-        }),
+        body: JSON.stringify(data),
       });
 
-      if (response.ok) {
-        setEditingUnit(null);
-        setEditDialogOpen(false);
-        onUnitUpdated();
-        toast({
-          title: "Success",
-          description: "Unit updated successfully",
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
       }
+
+      handleDialogClose();
+      onUpdated();
+      toast.success("Unit updated successfully");
     } catch (error) {
       console.error("Error updating unit:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update unit",
-        variant: "destructive",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update unit"
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const deleteUnit = async (unitId: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this unit? This will also delete all associated police stations."
-      )
-    ) {
+    if (!confirm("Are you sure you want to delete this unit?")) {
       return;
     }
 
@@ -96,20 +114,20 @@ export default function UnitsTable({
         method: "DELETE",
       });
 
-      if (response.ok) {
-        onUnitDeleted();
-        toast({
-          title: "Success",
-          description: "Unit deleted successfully",
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
       }
+
+      onDeleted();
+      toast.success("Unit deleted successfully");
     } catch (error) {
       console.error("Error deleting unit:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete unit",
-        variant: "destructive",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete unit"
+      );
     }
   };
 
@@ -138,10 +156,7 @@ export default function UnitsTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setEditingUnit(unit);
-                          setEditDialogOpen(true);
-                        }}
+                        onClick={() => handleEditClick(unit)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
@@ -150,41 +165,51 @@ export default function UnitsTable({
                       <DialogHeader>
                         <DialogTitle>Edit Unit</DialogTitle>
                       </DialogHeader>
-                      <form onSubmit={updateUnit} className="space-y-4">
+                      <form
+                        onSubmit={handleSubmit(updateUnit)}
+                        className="space-y-4"
+                      >
                         <div>
-                          <Label htmlFor="editUnitName">Unit Name</Label>
+                          <Label htmlFor="editUnitName" className="mb-2">
+                            Unit Name <span className="text-red-500">*</span>
+                          </Label>
                           <Input
                             id="editUnitName"
-                            value={editingUnit?.name || ""}
-                            onChange={(e) =>
-                              setEditingUnit((prev) =>
-                                prev ? { ...prev, name: e.target.value } : null
-                              )
-                            }
-                            required
+                            {...register("name")}
+                            placeholder="Enter unit name"
+                            className={errors.name ? "border-red-500" : ""}
                           />
+                          {errors.name && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.name.message}
+                            </p>
+                          )}
                         </div>
                         <div>
-                          <Label htmlFor="editUnitType">Type</Label>
+                          <Label htmlFor="editUnitType" className="mb-2">
+                            Type <span className="text-red-500">*</span>
+                          </Label>
                           <Input
                             id="editUnitType"
-                            value={editingUnit?.type || ""}
-                            onChange={(e) =>
-                              setEditingUnit((prev) =>
-                                prev ? { ...prev, type: e.target.value } : null
-                              )
-                            }
+                            {...register("type")}
+                            placeholder="Enter unit type"
+                            className={errors.type ? "border-red-500" : ""}
                           />
+                          {errors.type && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.type.message}
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2 pt-4">
-                          <Button type="submit">Update Unit</Button>
+                          <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Updating..." : "Update Unit"}
+                          </Button>
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => {
-                              setEditingUnit(null);
-                              setEditDialogOpen(false);
-                            }}
+                            onClick={handleDialogClose}
+                            disabled={isLoading}
                           >
                             Cancel
                           </Button>

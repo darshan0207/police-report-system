@@ -1,0 +1,408 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Upload, X } from "lucide-react";
+import { reportSchema, ReportFormData } from "@/lib/schemas/report";
+import { toast } from "sonner";
+import { uploadFile } from "@/lib/cloudinary";
+
+interface Unit {
+  _id: string;
+  name: string;
+}
+
+interface PoliceStation {
+  _id: string;
+  name: string;
+  unit?: string;
+}
+
+interface DutyType {
+  _id: string;
+  name: string;
+}
+
+interface Officer {
+  _id: string;
+  name: string;
+  isActive: boolean;
+}
+
+export default function ReportForm() {
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [stations, setStations] = useState<PoliceStation[]>([]);
+  const [officers, setOfficers] = useState<Officer[]>([]);
+  const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+    reset,
+  } = useForm<ReportFormData>({
+    resolver: zodResolver(reportSchema),
+    defaultValues: {
+      date: new Date().toISOString().slice(0, 10),
+      unit: "",
+      policeStation: "",
+      dutyType: "",
+      dutyCount: null as any,
+      verifyingOfficer: "",
+      remarks: "",
+      images: [],
+    },
+  });
+
+  const images = watch("images") || [];
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/units").then((r) => r.json()),
+      fetch("/api/police-stations").then((r) => r.json()),
+      fetch("/api/duty-type").then((r) => r.json()),
+      fetch("/api/officers").then((r) => r.json()),
+    ]).then(([u, p, d, o]) => {
+      setUnits(u);
+      setStations(p);
+      setDutyTypes(d);
+      setOfficers(o.filter((officer: Officer) => officer.isActive));
+    });
+  }, []);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    // Validate file types and sizes
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type.startsWith("image/");
+      // const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
+      const isValidSize = file.size <= 200 * 1024; // 200kb limit
+
+      if (!isValidType) {
+        toast.error(`File ${file.name} is not an image`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`File ${file.name} is too large (max 200KB)`);
+        return false;
+      }
+      return true;
+    });
+
+    setValue("images", [...images, ...validFiles]);
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setValue("images", newImages);
+  };
+
+  const onSubmit = async (data: ReportFormData) => {
+    setLoading(true);
+
+    try {
+      // Create FormData to handle file uploads
+      console.log(data.images);
+      if (data.images?.length) {
+        try {
+          const uploadPromises = data.images.map(async (image, index) => {
+            try {
+              return await uploadFile(image);
+            } catch (error) {
+              console.error(`Failed to upload image ${index}:`, error);
+              return null; // or a placeholder image URL
+            }
+          });
+
+          const uploadedUrls = await Promise.all(uploadPromises);
+          data.images = uploadedUrls.filter((url) => url !== null); // Remove failed uploads
+
+          console.log("Uploaded URLs:", data.images);
+        } catch (error) {
+          console.error("Image upload process failed:", error);
+        }
+      }
+      // Append images
+
+      console.log("data", data);
+      const response = await fetch("/api/reports", {
+        method: "POST",
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        toast.success("Report saved successfully!");
+        // Reset form
+        reset({
+          date: new Date().toISOString().slice(0, 10),
+          unit: "",
+          policeStation: "",
+          dutyType: "",
+          dutyCount: null as any,
+          verifyingOfficer: "",
+          remarks: "",
+          images: [],
+        });
+      } else {
+        const errorData = await response.json();
+        toast.error(errorData.error || "Error saving report");
+      }
+    } catch (error) {
+      console.error("Error saving report:", error);
+      toast.error("Error saving report");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+      {/* Date Field */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="date">Report Date</Label>
+          <Input
+            id="date"
+            type="date"
+            {...register("date")}
+            className={errors.date ? "border-red-500" : ""}
+          />
+          {errors.date && (
+            <p className="text-red-500 text-sm mt-1">{errors.date.message}</p>
+          )}
+        </div>
+      </div>
+
+      {/* Deployment Fields */}
+      <div className="border p-4 rounded-lg space-y-4">
+        <h4 className="font-medium">Deployment Information</h4>
+
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Unit */}
+          <div>
+            <Label htmlFor="unit" className="mb-2">
+              Unit <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={watch("unit")}
+              onValueChange={(value) => setValue("unit", value)}
+            >
+              <SelectTrigger className={errors.unit ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select Unit" />
+              </SelectTrigger>
+              <SelectContent>
+                {units.map((unit) => (
+                  <SelectItem key={unit._id} value={unit._id}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.unit && (
+              <p className="text-red-500 text-sm mt-1">{errors.unit.message}</p>
+            )}
+          </div>
+
+          {/* Police Station */}
+          <div>
+            <Label htmlFor="policeStation" className="mb-2">
+              Police Station <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={watch("policeStation")}
+              onValueChange={(value) => setValue("policeStation", value)}
+            >
+              <SelectTrigger
+                className={errors.policeStation ? "border-red-500" : ""}
+              >
+                <SelectValue placeholder="Select Station" />
+              </SelectTrigger>
+              <SelectContent>
+                {stations.map((station) => (
+                  <SelectItem key={station._id} value={station._id}>
+                    {station.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.policeStation && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.policeStation.message}
+              </p>
+            )}
+          </div>
+
+          {/* Duty Type */}
+          <div>
+            <Label htmlFor="dutyType" className="mb-2">
+              Duty Type <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={watch("dutyType")}
+              onValueChange={(value) => setValue("dutyType", value)}
+            >
+              <SelectTrigger
+                className={errors.dutyType ? "border-red-500" : ""}
+              >
+                <SelectValue placeholder="Select Duty Type" />
+              </SelectTrigger>
+              <SelectContent>
+                {dutyTypes.map((dutyType) => (
+                  <SelectItem key={dutyType._id} value={dutyType._id}>
+                    {dutyType.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.dutyType && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.dutyType.message}
+              </p>
+            )}
+          </div>
+
+          {/* Verifying Officer */}
+          <div>
+            <Label htmlFor="verifyingOfficer" className="mb-2">
+              Verifying Officer <span className="text-red-500">*</span>
+            </Label>
+            <Select
+              value={watch("verifyingOfficer")}
+              onValueChange={(value) => setValue("verifyingOfficer", value)}
+            >
+              <SelectTrigger
+                className={errors.verifyingOfficer ? "border-red-500" : ""}
+              >
+                <SelectValue placeholder="Select Officer" />
+              </SelectTrigger>
+              <SelectContent>
+                {officers.map((officer) => (
+                  <SelectItem key={officer._id} value={officer._id}>
+                    {officer.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.verifyingOfficer && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.verifyingOfficer.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Duty Count */}
+          <div>
+            <Label htmlFor="dutyCount" className="mb-2">
+              Duty Count <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="dutyCount"
+              type="number"
+              min="0"
+              {...register("dutyCount", { valueAsNumber: true })}
+              className={errors.dutyCount ? "border-red-500" : ""}
+            />
+            {errors.dutyCount && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.dutyCount.message}
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Remarks */}
+        <div>
+          <Label htmlFor="remarks" className="mb-2">
+            Remarks
+          </Label>
+          <Textarea
+            id="remarks"
+            {...register("remarks")}
+            placeholder="Enter any remarks..."
+          />
+        </div>
+      </div>
+
+      {/* Image Upload Section */}
+      <div className="border p-4 rounded-lg space-y-4">
+        <div className="flex justify-between items-center">
+          <h4 className="font-medium">
+            Upload Photos <span className="text-red-500">*</span>
+          </h4>
+        </div>
+
+        <div className="space-y-4">
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <Input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              id="image-upload"
+            />
+            <Label
+              htmlFor="image-upload"
+              className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+            >
+              <Upload className="h-8 w-8 text-gray-400" />
+              <span className="text-sm text-gray-600">
+                Click to upload photos or drag and drop
+              </span>
+              <span className="text-xs text-gray-500">
+                PNG, JPG, JPEG up to 200KB each
+              </span>
+            </Label>
+          </div>
+
+          {/* Image Preview */}
+          {images.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {images.map((image, index) => (
+                <div key={index} className="relative group">
+                  <img
+                    src={URL.createObjectURL(image)}
+                    alt={`Upload ${index + 1}`}
+                    className="w-full h-24 object-contain rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removeImage(index)}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                  <div className="text-xs text-gray-500 truncate mt-1">
+                    {image.name}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Button type="submit" disabled={loading} className="w-full" size="lg">
+        {loading ? "Saving Report..." : "Save Daily Report"}
+      </Button>
+    </form>
+  );
+}

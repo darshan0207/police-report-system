@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Table,
   TableBody,
@@ -17,87 +19,99 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Pencil, Trash2 } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-
-interface Unit {
-  _id: string;
-  name: string;
-}
+import { toast } from "sonner";
+import {
+  policeStationSchema,
+  PoliceStationFormData,
+} from "@/lib/schemas/police-station";
 
 interface PoliceStation {
   _id: string;
   name: string;
-  unit?: { _id: string; name: string };
-  address?: string;
 }
 
 interface StationsTableProps {
   stations: PoliceStation[];
-  units: Unit[];
-  onStationUpdated: () => void;
-  onStationDeleted: () => void;
+  onUpdated: () => void;
+  onDeleted: () => void;
 }
 
 export default function StationsTable({
   stations,
-  units,
-  onStationUpdated,
-  onStationDeleted,
+  onUpdated,
+  onDeleted,
 }: StationsTableProps) {
-  const [editingStation, setEditingStation] = useState<PoliceStation | null>(
-    null
-  );
+  const [editingPoliceStation, setEditingPoliceStation] =
+    useState<PoliceStation | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const updateStation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingStation) return;
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm<PoliceStationFormData>({
+    resolver: zodResolver(policeStationSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
 
+  const handleEditClick = (policeStation: PoliceStation) => {
+    setEditingPoliceStation(policeStation);
+    setValue("name", policeStation.name);
+    setEditDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setEditDialogOpen(false);
+    setEditingPoliceStation(null);
+    reset();
+  };
+
+  const updatePoliceStation = async (data: PoliceStationFormData) => {
+    if (!editingPoliceStation) return;
+
+    setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/police-stations/${editingStation._id}`,
+        `/api/police-stations/${editingPoliceStation._id}`,
         {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: editingStation.name,
-            unit: editingStation.unit?._id || null,
-            address: editingStation.address,
-          }),
+          body: JSON.stringify(data),
         }
       );
 
-      if (response.ok) {
-        setEditingStation(null);
-        setEditDialogOpen(false);
-        onStationUpdated();
-        toast({
-          title: "Success",
-          description: "Police station updated successfully",
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
       }
+
+      handleDialogClose();
+      onUpdated();
+      toast.success("Police Station updated successfully");
     } catch (error) {
-      console.error("Error updating station:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update police station",
-        variant: "destructive",
-      });
+      console.error("Error updating police station:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update police station"
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const deleteStation = async (stationId: string) => {
-    if (!confirm("Are you sure you want to delete this police station?")) {
+  const deletePoliceStation = async (stationId: string) => {
+    if (!confirm("Are you sure you want to delete this police station? ")) {
       return;
     }
 
@@ -106,20 +120,22 @@ export default function StationsTable({
         method: "DELETE",
       });
 
-      if (response.ok) {
-        onStationDeleted();
-        toast({
-          title: "Success",
-          description: "Police station deleted successfully",
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
       }
+
+      onDeleted();
+      toast.success("Police station deleted successfully");
     } catch (error) {
-      console.error("Error deleting station:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete police station",
-        variant: "destructive",
-      });
+      console.error("Error deleting police station:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to delete police station"
+      );
     }
   };
 
@@ -129,8 +145,6 @@ export default function StationsTable({
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
-            <TableHead>Unit</TableHead>
-            <TableHead>Address</TableHead>
             <TableHead className="w-32">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -138,102 +152,63 @@ export default function StationsTable({
           {stations.map((station) => (
             <TableRow key={station._id}>
               <TableCell className="font-medium">{station.name}</TableCell>
-              <TableCell>{station.unit?.name || "-"}</TableCell>
-              <TableCell className="max-w-xs truncate">
-                {station.address || "-"}
-              </TableCell>
               <TableCell>
                 <div className="flex gap-2">
                   <Dialog
-                    open={editDialogOpen && editingStation?._id === station._id}
+                    open={
+                      editDialogOpen &&
+                      editingPoliceStation?._id === station._id
+                    }
                     onOpenChange={setEditDialogOpen}
                   >
                     <DialogTrigger asChild>
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setEditingStation(station);
-                          setEditDialogOpen(true);
-                        }}
+                        onClick={() => handleEditClick(station)}
                       >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-md">
+                    <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Edit Police Station</DialogTitle>
                       </DialogHeader>
-                      <form onSubmit={updateStation} className="space-y-4">
+                      <form
+                        onSubmit={handleSubmit(updatePoliceStation)}
+                        className="space-y-4"
+                      >
                         <div>
-                          <Label htmlFor="editStationName">Station Name</Label>
-                          <Input
-                            id="editStationName"
-                            value={editingStation?.name || ""}
-                            onChange={(e) =>
-                              setEditingStation((prev) =>
-                                prev ? { ...prev, name: e.target.value } : null
-                              )
-                            }
-                            required
-                          />
-                        </div>
-                        <div>
-                          <Label>Unit (Optional)</Label>
-                          <Select
-                            value={editingStation?.unit?._id || ""}
-                            onValueChange={(value) => {
-                              const selectedUnit = units.find(
-                                (u) => u._id === value
-                              );
-                              if (editingStation) {
-                                setEditingStation({
-                                  ...editingStation,
-                                  unit: selectedUnit
-                                    ? {
-                                        _id: selectedUnit._id,
-                                        name: selectedUnit.name,
-                                      }
-                                    : undefined,
-                                });
-                              }
-                            }}
+                          <Label
+                            htmlFor="editPoliceStationName"
+                            className="mb-2"
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select Unit" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {units.map((unit) => (
-                                <SelectItem key={unit._id} value={unit._id}>
-                                  {unit.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div>
-                          <Label htmlFor="editStationAddress">Address</Label>
+                            Police Station Name{" "}
+                            <span className="text-red-500">*</span>
+                          </Label>
                           <Input
-                            id="editStationAddress"
-                            value={editingStation?.address || ""}
-                            onChange={(e) =>
-                              setEditingStation((prev) =>
-                                prev
-                                  ? { ...prev, address: e.target.value }
-                                  : null
-                              )
-                            }
+                            id="editPoliceStationName"
+                            {...register("name")}
+                            placeholder="Enter police station name"
+                            className={errors.name ? "border-red-500" : ""}
                           />
+                          {errors.name && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.name.message}
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2 pt-4">
-                          <Button type="submit">Update Station</Button>
+                          <Button type="submit" disabled={isLoading}>
+                            {isLoading
+                              ? "Updating..."
+                              : "Update Police Station"}
+                          </Button>
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => {
-                              setEditingStation(null);
-                              setEditDialogOpen(false);
-                            }}
+                            onClick={handleDialogClose}
+                            disabled={isLoading}
                           >
                             Cancel
                           </Button>
@@ -244,7 +219,7 @@ export default function StationsTable({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => deleteStation(station._id)}
+                    onClick={() => deletePoliceStation(station._id)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
@@ -255,10 +230,24 @@ export default function StationsTable({
           ))}
         </TableBody>
       </Table>
-
       {stations.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          No police stations found. Create your first police station above.
+        <div className="text-center py-12 border-2 border-dashed rounded-lg">
+          <h3 className="text-lg font-medium text-muted-foreground mb-2">
+            No police station created yet
+          </h3>
+        </div>
+      )}
+
+      {stations.length > 0 && (
+        <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span>
+                {stations.length} police station
+                {stations.length !== 1 ? "s" : ""} total
+              </span>
+            </div>
+          </div>
         </div>
       )}
     </>

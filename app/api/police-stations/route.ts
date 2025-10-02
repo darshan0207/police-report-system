@@ -9,41 +9,40 @@ export async function GET() {
   // if (!session) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
-  const session = {
-    user: {
-      role: "admin",
-      unit: {},
-    },
-  };
-
   await connectDB();
-
-  let filter = {};
-  if (session.user.role === "unit") {
-    filter = { unit: session.user.unit };
-  }
-
-  const stations = await PoliceStation.find(filter)
-    .populate("unit")
-    .sort({ name: 1 });
+  const stations = await PoliceStation.find().sort({ name: 1 });
   return NextResponse.json(stations);
 }
 
 export async function POST(request: NextRequest) {
-  // const session = await getServerSession(authOptions);
-  const session = {
-    user: {
-      role: "admin",
-    },
-  };
+  try {
+    // const session = await getServerSession(authOptions);
+    const session = {
+      user: {
+        role: "admin",
+      },
+    };
 
-  if (!session || session.user.role !== "admin") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!session || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    await connectDB();
+
+    const station = await PoliceStation.create(body);
+    return NextResponse.json(station, { status: 201 });
+  } catch (error) {
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-
-  const body = await request.json();
-  await connectDB();
-
-  const station = await PoliceStation.create(body);
-  return NextResponse.json(station, { status: 201 });
 }

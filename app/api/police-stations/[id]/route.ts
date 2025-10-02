@@ -16,36 +16,20 @@ export async function PUT(
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
 
-  const session = {
-    user: {
-      role: "admin",
-    },
-  };
-
-  const body = await request.json();
   await connectDB();
+  const body = await request.json();
 
   try {
-    const updateData: any = {
-      name: body.name,
-      address: body.address,
-    };
-
-    // Only set unit if provided, otherwise remove it
-    if (body.unit) {
-      updateData.unit = body.unit;
-    } else {
-      updateData.$unset = { unit: 1 };
-    }
-
     const station = await PoliceStation.findByIdAndUpdate(
       params.id,
-      updateData,
+      {
+        name: body.name,
+      },
       {
         new: true,
         runValidators: true,
       }
-    ).populate("unit");
+    );
 
     if (!station) {
       return NextResponse.json(
@@ -57,8 +41,17 @@ export async function PUT(
     return NextResponse.json(station);
   } catch (error) {
     console.error("Error updating police station:", error);
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
     return NextResponse.json(
-      { error: "Failed to update police station" },
+      { error: errorMessage || "Failed to update police station" },
       { status: 500 }
     );
   }
@@ -93,8 +86,19 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting police station:", error);
+
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
+
     return NextResponse.json(
-      { error: "Failed to delete police station" },
+      { error: errorMessage || "Failed to delete police station" },
       { status: 500 }
     );
   }

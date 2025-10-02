@@ -8,58 +8,47 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // const session = await getServerSession(authOptions);
+  // if (
+  //   !session ||
+  //   (session.user.role !== "admin")
+  // ) {
+  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // }
+
+  await connectDB();
+  const body = await request.json();
+
   try {
-    // const session = await getServerSession(authOptions);
-    // if (!session || session.user.role !== "admin") {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-
-    await connectDB();
-
-    const body = await request.json();
-    const {
-      name,
-      badgeNumber,
-      rank,
-      photo,
-      unit,
-      policeStation,
-      contactNumber,
-      email,
-      isActive,
-    } = body;
-
-    const officer = await Officer.findByIdAndUpdate(
+    const station = await Officer.findByIdAndUpdate(
       params.id,
       {
-        name,
-        badgeNumber,
-        rank,
-        photo,
-        unit: unit || null,
-        policeStation: policeStation || null,
-        contactNumber,
-        email,
-        isActive,
+        name: body.name,
       },
-      { new: true, runValidators: true }
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
-    if (!officer) {
+    if (!station) {
       return NextResponse.json({ error: "Officer not found" }, { status: 404 });
     }
 
-    return NextResponse.json(officer);
-  } catch (error: any) {
+    return NextResponse.json(station);
+  } catch (error) {
     console.error("Error updating officer:", error);
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { error: "Badge number already exists" },
-        { status: 400 }
-      );
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
     }
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: errorMessage || "Failed to update officer" },
       { status: 500 }
     );
   }
@@ -69,30 +58,41 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  // const session = await getServerSession(authOptions);
+  // if (
+  //   !session ||
+  //   (session.user.role !== "admin")
+  // ) {
+  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // }
+
+  await connectDB();
+
   try {
-    // const session = await getServerSession(authOptions);
-    // if (!session || session.user.role !== "admin") {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    const station = await Officer.findByIdAndDelete(params.id);
 
-    await connectDB();
-
-    // Soft delete - mark as inactive instead of removing
-    const officer = await Officer.findByIdAndUpdate(
-      params.id,
-      { isActive: false },
-      { new: true }
-    );
-
-    if (!officer) {
+    if (!station) {
       return NextResponse.json({ error: "Officer not found" }, { status: 404 });
     }
 
-    return NextResponse.json({ message: "Officer deactivated successfully" });
+    return NextResponse.json({
+      message: "Officer deleted successfully",
+    });
   } catch (error) {
     console.error("Error deleting officer:", error);
+
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
+
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: errorMessage || "Failed to delete officer" },
       { status: 500 }
     );
   }

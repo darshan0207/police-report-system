@@ -1,75 +1,77 @@
 import { type NextRequest, NextResponse } from "next/server";
-// import { getServerSession } from "next-auth"
+import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import DeploymentRecord from "@/models/DeploymentRecord";
+import "@/models/Unit";
+import "@/models/PoliceStation";
+import "@/models/DutyType";
+import "@/models/Officer";
 
 export async function GET(request: NextRequest) {
-  // const session = await getServerSession(authOptions)
-  // if (!session) {
-  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  // }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    await connectDB();
 
-  const { searchParams } = new URL(request.url);
-  const date = searchParams.get("date");
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get("date");
 
-  await connectDB();
+    const filter: any = {};
+    if (date) filter.date = date;
 
-  const session = {
-    user: {
-      role: "admin",
-      unit: {},
-    },
-  };
+    const deployments = await DeploymentRecord.find(filter)
+      .populate("unit policeStation dutyType verifyingOfficer")
+      .sort({ createdAt: -1 });
+    return NextResponse.json(deployments);
+  } catch (error) {
+    console.error("Error updating user:", error);
 
-  const filter: any = {};
-  if (date) filter.date = date;
+    let errorMessage = "An unexpected error occurred";
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
 
-  // Apply role-based filtering
-  if (session.user.role === "unit") {
-    filter.unit = session.user.unit;
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
-
-  const deployments = await DeploymentRecord.find(filter)
-    .populate("unit policeStation verifyingOfficer")
-    .sort({ createdAt: -1 });
-
-  return NextResponse.json({ deployments });
 }
 
 export async function POST(request: NextRequest) {
-  // const session = await getServerSession(authOptions);
-  // if (!session) {
-  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  // }
+  try {
+    // const session = await getServerSession(authOptions);
+    const session = {
+      user: {
+        role: "admin",
+      },
+    };
 
-  const session = {
-    user: {
-      role: "admin",
-      unit: {},
-    },
-  };
+    if (!session || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const body = await request.json();
-  const { date, deployments } = body;
+    const body = await request.json();
+    console.log(body);
+    await connectDB();
 
-  await connectDB();
-  console.log(deployments);
-  console.log(date);
-  // Create deployment records
-  // const deploymentDocs = await DeploymentRecord.insertMany(
-  //   deployments.map((d: any) => ({ ...d, date }))
-  // );
+    const dailyDoc = await DeploymentRecord.create(body);
+    return NextResponse.json(dailyDoc, { status: 201 });
+  } catch (error) {
+    let errorMessage = "An unexpected error occurred";
 
-  const dailyDoc = await DeploymentRecord.findOneAndUpdate(
-    {
-      date: date,
-      unit: deployments.unit,
-      policeStation: deployments.policeStation,
-    },
-    { ...deployments, date },
-    { upsert: true, new: true }
-  );
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
 
-  return NextResponse.json({ data: dailyDoc }, { status: 201 });
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
 }

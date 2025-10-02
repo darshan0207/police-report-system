@@ -11,7 +11,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ReportForm from "./ReportForm";
+import ReportForm from "./forms/ReportForm";
 import ReportsList from "./ReportsList";
 import MasterDataManager from "./MasterDataManager";
 
@@ -28,7 +28,7 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full md:grid-cols-1 lg:grid-cols-3">
           <TabsTrigger value="reports">Daily Reports</TabsTrigger>
           <TabsTrigger value="create">Create Report</TabsTrigger>
           <TabsTrigger value="master">Master Data</TabsTrigger>

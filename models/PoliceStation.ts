@@ -2,10 +2,6 @@ import mongoose, { Schema, type Document, type Types } from "mongoose";
 
 export interface IPoliceStation extends Document {
   name: string;
-  unit?: Types.ObjectId;
-  address?: string;
-  city?: string;
-  contactNumber?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -13,10 +9,6 @@ export interface IPoliceStation extends Document {
 const PoliceStationSchema = new Schema<IPoliceStation>(
   {
     name: { type: String, required: true },
-    unit: { type: Schema.Types.ObjectId, ref: "Unit" },
-    address: { type: String },
-    city: { type: String },
-    contactNumber: { type: String },
   },
   {
     timestamps: true,

@@ -2,17 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import OfficersTable from "./tables/OfficersTable";
-import OfficerForm from "./forms/OfficerForm";
+import UserForm from "./forms/UserForm";
+import UsersTable from "./tables/UserTable";
 import { toast } from "sonner";
-interface Officer {
+interface User {
   _id: string;
   name: string;
+  email: string;
+  role: "admin" | "user";
   isActive: boolean;
 }
 
-export default function OfficersTab() {
-  const [officers, setOfficers] = useState<Officer[]>([]);
+export default function UsersTab() {
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
     fetchData();
@@ -20,8 +22,8 @@ export default function OfficersTab() {
 
   const fetchData = async () => {
     try {
-      const stationsRes = await fetch("/api/officers");
-      setOfficers(await stationsRes.json());
+      const usersRes = await fetch("/api/users");
+      setUsers(await usersRes.json());
     } catch (error) {
       console.error("Error fetching data:", error);
       toast.error("Failed to fetch data");
@@ -32,20 +34,20 @@ export default function OfficersTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Add New Officer</CardTitle>
+          <CardTitle>Add New User</CardTitle>
         </CardHeader>
         <CardContent>
-          <OfficerForm onCreated={fetchData} />
+          <UserForm onCreated={fetchData} />
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Officer List</CardTitle>
+          <CardTitle>User List</CardTitle>
         </CardHeader>
         <CardContent>
-          <OfficersTable
-            officers={officers}
+          <UsersTable
+            users={users}
             onUpdated={fetchData}
             onDeleted={fetchData}
           />

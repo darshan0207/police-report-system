@@ -10,21 +10,8 @@ export async function GET() {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
 
-  // await connectDB();
-
-  const session = {
-    user: {
-      role: "admin",
-      unit: {},
-    },
-  };
-
-  let filter = {};
-  if (session.user.role === "unit") {
-    filter = { _id: session.user.unit };
-  }
-
-  const units = await Unit.find(filter).sort({ name: 1 });
+  await connectDB();
+  const units = await Unit.find().sort({ name: 1 });
   return NextResponse.json(units);
 }
 
@@ -41,13 +28,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json();
-    console.log(body);
     await connectDB();
-
+    const body = await request.json();
     const unit = await Unit.create(body);
     return NextResponse.json(unit, { status: 201 });
   } catch (error) {
-    return NextResponse.json({ error: error?.message }, { status: 500 });
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

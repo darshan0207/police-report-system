@@ -4,100 +4,46 @@ import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Officer from "@/models/Officer";
 
-export async function GET(request: NextRequest) {
-  try {
-    // const session = await getServerSession(authOptions);
-    // if (!session) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-
-    const session = {
-      user: {
-        role: "admin",
-        unit: {},
-      },
-    };
-
-    await connectDB();
-
-    const { searchParams } = new URL(request.url);
-    const unit = searchParams.get("unit");
-    const station = searchParams.get("station");
-
-    const query: any = { isActive: true };
-
-    // Apply role-based filtering
-    if (session.user.role === "unit" && session.user.unit) {
-      query.unit = session.user.unit;
-    }
-
-    // Apply additional filters
-    if (unit) query.unit = unit;
-    if (station) query.policeStation = station;
-
-    const officers = await Officer.find(query).sort({ name: 1 });
-    return NextResponse.json(officers);
-  } catch (error) {
-    console.error("Error fetching officers:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
-  }
+export async function GET() {
+  // const session = await getServerSession(authOptions);
+  // if (!session) {
+  //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // }
+  await connectDB();
+  const stations = await Officer.find().sort({ name: 1 });
+  return NextResponse.json(stations);
 }
 
 export async function POST(request: NextRequest) {
   try {
     // const session = await getServerSession(authOptions);
-    // if (!session || session.user.role !== "admin") {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    const session = {
+      user: {
+        role: "admin",
+      },
+    };
 
-    await connectDB();
+    if (!session || session.user.role !== "admin") {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const body = await request.json();
-    const {
-      name,
-      badgeNumber,
-      rank,
-      photo,
-      unit,
-      policeStation,
-      contactNumber,
-      email,
-    } = body;
+    console.log(body);
+    await connectDB();
 
-    if (!name || !badgeNumber || !rank) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
+    const station = await Officer.create(body);
+    return NextResponse.json(station, { status: 201 });
+  } catch (error) {
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
     }
 
-    const officer = new Officer({
-      name,
-      badgeNumber,
-      rank,
-      photo,
-      unit: unit || null,
-      policeStation: policeStation || null,
-      contactNumber,
-      email,
-    });
-
-    await officer.save();
-    return NextResponse.json(officer, { status: 201 });
-  } catch (error: any) {
-    console.error("Error creating officer:", error);
-    if (error.code === 11000) {
-      return NextResponse.json(
-        { error: "Badge number already exists" },
-        { status: 400 }
-      );
-    }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }

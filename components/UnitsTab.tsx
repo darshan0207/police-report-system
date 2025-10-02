@@ -1,56 +1,32 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { toast } from "@/hooks/use-toast";
 import UnitForm from "./forms/UnitForm";
 import UnitsTable from "./tables/UnitsTable";
+import { toast } from "sonner";
 
 interface Unit {
   _id: string;
   name: string;
-  type?: string;
+  type: string;
 }
 
-interface UnitsTabProps {
-  units: Unit[];
-  onUnitCreated: () => void;
-  onUnitUpdated: () => void;
-  onUnitDeleted: () => void;
-}
+export default function UnitsTab() {
+  const [units, setUnits] = useState<Unit[]>([]);
 
-export default function UnitsTab({
-  units,
-  onUnitCreated,
-  onUnitUpdated,
-  onUnitDeleted,
-}: UnitsTabProps) {
-  const [newUnit, setNewUnit] = useState({ name: "", type: "" });
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const createUnit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fetchData = async () => {
     try {
-      const response = await fetch("/api/units", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newUnit),
-      });
+      const unitsRes = await fetch("/api/units");
 
-      if (response.ok) {
-        setNewUnit({ name: "", type: "" });
-        onUnitCreated();
-        toast({
-          title: "Success",
-          description: "Unit created successfully",
-        });
-      }
+      setUnits(await unitsRes.json());
     } catch (error) {
-      console.error("Error creating unit:", error);
-      toast({
-        title: "Error",
-        description: "Failed to create unit",
-        variant: "destructive",
-      });
+      console.error("Error fetching data:", error);
+      toast.error("Failed to fetch data");
     }
   };
 
@@ -61,24 +37,18 @@ export default function UnitsTab({
           <CardTitle>Add New Unit</CardTitle>
         </CardHeader>
         <CardContent>
-          <UnitForm
-            unit={newUnit}
-            onSubmit={createUnit}
-            onChange={setNewUnit}
-            submitText="Add Unit"
-          />
+          <UnitForm onCreated={fetchData} />
         </CardContent>
       </Card>
-
       <Card>
         <CardHeader>
-          <CardTitle>Existing Units</CardTitle>
+          <CardTitle>Unit List</CardTitle>
         </CardHeader>
         <CardContent>
           <UnitsTable
             units={units}
-            onUnitUpdated={onUnitUpdated}
-            onUnitDeleted={onUnitDeleted}
+            onUpdated={fetchData}
+            onDeleted={fetchData}
           />
         </CardContent>
       </Card>

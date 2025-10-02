@@ -3,40 +3,55 @@ import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import DutyType from "@/models/DutyType";
-import Unit from "@/models/Unit";
-import PoliceStation from "@/models/PoliceStation";
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   // const session = await getServerSession(authOptions);
-  // if (!session || session.user.role !== "admin") {
+  // if (
+  //   !session ||
+  //   (session.user.role !== "admin")
+  // ) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
 
-  const body = await request.json();
   await connectDB();
+  const body = await request.json();
 
   try {
-    const dutyType = await DutyType.findByIdAndUpdate(
+    const station = await DutyType.findByIdAndUpdate(
       params.id,
-      { name: body.name, description: body.description },
-      { new: true, runValidators: true }
+      {
+        name: body.name,
+      },
+      {
+        new: true,
+        runValidators: true,
+      }
     );
 
-    if (!dutyType) {
+    if (!station) {
       return NextResponse.json(
-        { error: "DutyType not found" },
+        { error: "Duty type not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(dutyType);
+    return NextResponse.json(station);
   } catch (error) {
     console.error("Error updating duty type:", error);
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
     return NextResponse.json(
-      { error: "Failed to update duty type" },
+      { error: errorMessage || "Failed to update duty type" },
       { status: 500 }
     );
   }
@@ -47,36 +62,43 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   // const session = await getServerSession(authOptions);
-  // if (!session || session.user.role !== "admin") {
+  // if (
+  //   !session ||
+  //   (session.user.role !== "admin")
+  // ) {
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
 
   await connectDB();
 
   try {
-    // Delete all police stations in this dutyType
-    await PoliceStation.deleteMany({ dutyType: params.id });
+    const station = await DutyType.findByIdAndDelete(params.id);
 
-    // Delete all units in this dutyType
-    await Unit.deleteMany({ dutyType: params.id });
-
-    // Delete the dutyType
-    const dutyType = await DutyType.findByIdAndDelete(params.id);
-
-    if (!dutyType) {
+    if (!station) {
       return NextResponse.json(
-        { error: "dutyType not found" },
+        { error: "Duty type not found" },
         { status: 404 }
       );
     }
 
     return NextResponse.json({
-      message: "DutyType and associated data deleted successfully",
+      message: "duty type deleted successfully",
     });
   } catch (error) {
-    console.error("Error deleting dutyType:", error);
+    console.error("Error deleting duty type:", error);
+
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
+
     return NextResponse.json(
-      { error: "Failed to delete dutyType" },
+      { error: errorMessage || "Failed to delete duty type" },
       { status: 500 }
     );
   }

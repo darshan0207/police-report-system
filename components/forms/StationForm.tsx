@@ -1,76 +1,98 @@
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  policeStationSchema,
+  PoliceStationFormData,
+} from "@/lib/schemas/police-station";
+import { useState } from "react";
+import { toast } from "sonner";
 
-interface Unit {
-  _id: string;
-  name: string;
-}
-
-interface StationFormProps {
-  station: {
-    name: string;
-    unit: string;
-    address: string;
-  };
-  units: Unit[];
-  onSubmit: (e: React.FormEvent) => void;
-  onChange: (station: { name: string; unit: string; address: string }) => void;
-  submitText: string;
+interface PoliceStationFormProps {
+  onCreated: () => void;
+  initialData?: Partial<PoliceStationFormData>;
 }
 
 export default function StationForm({
-  station,
-  units,
-  onSubmit,
-  onChange,
-  submitText,
-}: StationFormProps) {
+  onCreated,
+  initialData,
+}: PoliceStationFormProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting, isValid },
+    reset,
+  } = useForm<PoliceStationFormData>({
+    resolver: zodResolver(policeStationSchema),
+    defaultValues: {
+      name: initialData?.name || "",
+    },
+    mode: "onChange",
+  });
+
+  const handleFormSubmit = async (data: PoliceStationFormData) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("/api/police-stations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
+      }
+
+      const result = await response.json();
+
+      reset(); // Reset form after successful submission
+      onCreated();
+
+      toast.success("Police station created successfully");
+    } catch (error) {
+      console.error("Error creating police station:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to create police station"
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const isSubmitDisabled = isSubmitting || isLoading || !isValid;
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="stationName">Station Name</Label>
-        <Input
-          id="stationName"
-          value={station.name}
-          onChange={(e) => onChange({ ...station, name: e.target.value })}
-          required
-        />
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+      <div className="grid grid-cols-1 gap-4">
+        <div>
+          <Label htmlFor="name" className="mb-2">
+            Police Station Name <span className="text-red-500">*</span>
+          </Label>
+          <Input
+            id="name"
+            {...register("name")}
+            placeholder="Enter police station name"
+            disabled={isLoading}
+            className={errors.name ? "border-red-500" : ""}
+          />
+          {errors.name && (
+            <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+          )}
+        </div>
       </div>
-      <div>
-        <Label>Unit (Optional)</Label>
-        <Select
-          value={station.unit}
-          onValueChange={(value) => onChange({ ...station, unit: value })}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select Unit" />
-          </SelectTrigger>
-          <SelectContent>
-            {units.map((unit) => (
-              <SelectItem key={unit._id} value={unit._id}>
-                {unit.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div>
-        <Label htmlFor="stationAddress">Address</Label>
-        <Input
-          id="stationAddress"
-          value={station.address}
-          onChange={(e) => onChange({ ...station, address: e.target.value })}
-        />
-      </div>
-      <Button type="submit">{submitText}</Button>
+
+      <Button type="submit" disabled={isSubmitDisabled} className="min-w-24">
+        {isLoading ? "Submitting..." : "Add Police Station"}
+      </Button>
     </form>
   );
 }

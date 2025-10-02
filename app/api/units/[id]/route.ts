@@ -3,7 +3,6 @@ import { type NextRequest, NextResponse } from "next/server";
 import { authOptions } from "@/lib/auth";
 import { connectDB } from "@/lib/mongodb";
 import Unit from "@/models/Unit";
-import PoliceStation from "@/models/PoliceStation";
 
 export async function PUT(
   request: NextRequest,
@@ -34,8 +33,17 @@ export async function PUT(
     return NextResponse.json(unit);
   } catch (error) {
     console.error("Error updating unit:", error);
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
     return NextResponse.json(
-      { error: "Failed to update unit" },
+      { error: errorMessage || "Failed to update unit" },
       { status: 500 }
     );
   }
@@ -56,9 +64,6 @@ export async function DELETE(
   await connectDB();
 
   try {
-    // Delete all police stations in this unit
-    await PoliceStation.deleteMany({ unit: params.id });
-
     // Delete the unit
     const unit = await Unit.findByIdAndDelete(params.id);
 
@@ -71,8 +76,18 @@ export async function DELETE(
     });
   } catch (error) {
     console.error("Error deleting unit:", error);
+    let errorMessage = "An unexpected error occurred";
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+    } else if (typeof error === "string") {
+      errorMessage = error;
+    } else if (error && typeof error === "object" && "message" in error) {
+      errorMessage = String(error.message);
+    }
+
     return NextResponse.json(
-      { error: "Failed to delete unit" },
+      { error: errorMessage || "Failed to delete unit" },
       { status: 500 }
     );
   }

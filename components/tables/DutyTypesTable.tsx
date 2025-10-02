@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Table,
   TableBody,
@@ -19,112 +21,110 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Trash2, MapPin } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Pencil, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { dutyTypeSchema, DutyTypeFormData } from "@/lib/schemas/duty-type";
 
 interface DutyType {
   _id: string;
   name: string;
-  description?: string;
 }
 
 interface DutyTypesTableProps {
   dutyTypes: DutyType[];
-  onDutyTypeUpdated: () => void;
-  onDutyTypeDeleted: () => void;
+  onUpdated: () => void;
+  onDeleted: () => void;
 }
 
 export default function DutyTypesTable({
   dutyTypes,
-  onDutyTypeUpdated,
-  onDutyTypeDeleted,
+  onUpdated,
+  onDeleted,
 }: DutyTypesTableProps) {
   const [editingDutyType, setEditingDutyType] = useState<DutyType | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState<string | null>(null);
-  const [updateLoading, setUpdateLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const updateDutyType = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    setValue,
+  } = useForm<DutyTypeFormData>({
+    resolver: zodResolver(dutyTypeSchema),
+    defaultValues: {
+      name: "",
+    },
+  });
+
+  const handleEditClick = (dutyType: DutyType) => {
+    setEditingDutyType(dutyType);
+    setValue("name", dutyType.name);
+    setEditDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setEditDialogOpen(false);
+    setEditingDutyType(null);
+    reset();
+  };
+
+  const updateDutyType = async (data: DutyTypeFormData) => {
     if (!editingDutyType) return;
 
-    setUpdateLoading(true);
+    setIsLoading(true);
     try {
       const response = await fetch(`/api/duty-type/${editingDutyType._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: editingDutyType.name,
-          description: editingDutyType.description,
-        }),
+        body: JSON.stringify(data),
       });
 
-      if (response.ok) {
-        setEditingDutyType(null);
-        setEditDialogOpen(false);
-        onDutyTypeUpdated();
-        toast({
-          title: "Success",
-          description: "Duty type updated successfully",
-        });
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: error.error || "Failed to update duty type",
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
       }
+
+      handleDialogClose();
+      onUpdated();
+      toast.success("Duty Type updated successfully");
     } catch (error) {
       console.error("Error updating duty type:", error);
-      toast({
-        title: "Error",
-        description: "Failed to update duty type",
-        variant: "destructive",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "Failed to update duty type"
+      );
     } finally {
-      setUpdateLoading(false);
+      setIsLoading(false);
     }
   };
 
-  const deleteDutyType = async (dutyTypeId: string, name: string) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete the duty type "${name}"? This action will also remove all associated units, police stations, and officers. This action cannot be undone.`
-      )
-    ) {
+  const deletePoliceStation = async (stationId: string) => {
+    if (!confirm("Are you sure you want to delete this duty type? ")) {
       return;
     }
 
-    setDeleteLoading(dutyTypeId);
     try {
-      const response = await fetch(`/api/duty-type/${dutyTypeId}`, {
+      const response = await fetch(`/api/duty-type/${stationId}`, {
         method: "DELETE",
       });
 
-      if (response.ok) {
-        onDutyTypeDeleted();
-        toast({
-          title: "Success",
-          description: "Duty Type deleted successfully",
-        });
-      } else {
-        const error = await response.json();
-        toast({
-          title: "Error",
-          description: error.error || "Failed to delete duty type",
-          variant: "destructive",
-        });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
       }
+
+      onDeleted();
+      toast.success("Duty type deleted successfully");
     } catch (error) {
       console.error("Error deleting duty type:", error);
-      toast({
-        title: "Error",
-        description: "Failed to delete duty type",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleteLoading(null);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete duty type"
+      );
     }
   };
 
@@ -133,20 +133,16 @@ export default function DutyTypesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Duty Type</TableHead>
-            <TableHead className="w-40">Actions</TableHead>
+            <TableHead>Name</TableHead>
+            <TableHead className="w-32">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {dutyTypes.map((dutyType) => (
             <TableRow key={dutyType._id}>
+              <TableCell className="font-medium">{dutyType.name}</TableCell>
               <TableCell>
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{dutyType.name}</span>
-                </div>
-              </TableCell>
-              <TableCell>
-                <div className="flex gap-2 ">
+                <div className="flex gap-2">
                   <Dialog
                     open={
                       editDialogOpen && editingDutyType?._id === dutyType._id
@@ -157,71 +153,44 @@ export default function DutyTypesTable({
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => {
-                          setEditingDutyType(dutyType);
-                          setEditDialogOpen(true);
-                        }}
-                        className="h-8 w-8 p-0"
+                        onClick={() => handleEditClick(dutyType)}
                       >
-                        <Pencil className="h-3 w-3" />
-                        <span className="sr-only">Edit duty type</span>
+                        <Pencil className="h-4 w-4" />
                       </Button>
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
                         <DialogTitle>Edit Duty Type</DialogTitle>
                       </DialogHeader>
-                      <form onSubmit={updateDutyType} className="space-y-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="editDutyTypeName">
+                      <form
+                        onSubmit={handleSubmit(updateDutyType)}
+                        className="space-y-4"
+                      >
+                        <div>
+                          <Label htmlFor="editDutyType" className="mb-2">
                             Duty Type <span className="text-red-500">*</span>
                           </Label>
                           <Input
-                            id="editDutyTypeName"
-                            value={editingDutyType?.name || ""}
-                            onChange={(e) =>
-                              setEditingDutyType((prev) =>
-                                prev ? { ...prev, name: e.target.value } : null
-                              )
-                            }
+                            id="editDutyType"
+                            {...register("name")}
                             placeholder="Enter duty type"
-                            required
+                            className={errors.name ? "border-red-500" : ""}
                           />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="editDutyTypeDesc">Description</Label>
-                          <Input
-                            id="editDutyTypeDesc"
-                            value={editingDutyType?.description || ""}
-                            onChange={(e) =>
-                              setEditingDutyType((prev) =>
-                                prev
-                                  ? {
-                                      ...prev,
-                                      description: e.target.value,
-                                    }
-                                  : null
-                              )
-                            }
-                            placeholder="Enter duty type description (optional)"
-                          />
+                          {errors.name && (
+                            <p className="text-red-500 text-sm mt-1">
+                              {errors.name.message}
+                            </p>
+                          )}
                         </div>
                         <div className="flex gap-2 pt-4">
-                          <Button
-                            type="submit"
-                            disabled={updateLoading}
-                            className="flex-1"
-                          >
-                            {updateLoading ? "Updating..." : "Update Duty Type"}
+                          <Button type="submit" disabled={isLoading}>
+                            {isLoading ? "Updating..." : "Update Duty Type"}
                           </Button>
                           <Button
                             type="button"
                             variant="outline"
-                            onClick={() => {
-                              setEditingDutyType(null);
-                              setEditDialogOpen(false);
-                            }}
-                            disabled={updateLoading}
+                            onClick={handleDialogClose}
+                            disabled={isLoading}
                           >
                             Cancel
                           </Button>
@@ -232,16 +201,10 @@ export default function DutyTypesTable({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => deleteDutyType(dutyType._id, dutyType.name)}
-                    disabled={deleteLoading === dutyType._id}
-                    className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => deletePoliceStation(dutyType._id)}
+                    className="text-red-600 hover:text-red-700"
                   >
-                    {deleteLoading === dutyType._id ? (
-                      <div className="h-3 w-3 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
-                    ) : (
-                      <Trash2 className="h-3 w-3" />
-                    )}
-                    <span className="sr-only">Delete duty type</span>
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </TableCell>
@@ -249,11 +212,10 @@ export default function DutyTypesTable({
           ))}
         </TableBody>
       </Table>
-
       {dutyTypes.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">
-            No duty types created yet
+            No duty type created yet
           </h3>
         </div>
       )}
@@ -263,8 +225,8 @@ export default function DutyTypesTable({
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
               <span>
-                {dutyTypes.length} duty types{dutyTypes.length !== 1 ? "s" : ""}{" "}
-                total
+                {dutyTypes.length} duty type
+                {dutyTypes.length !== 1 ? "s" : ""} total
               </span>
             </div>
           </div>
