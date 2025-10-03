@@ -46,7 +46,7 @@ export default function HomePage() {
             Daily deployment management system for Home Guards units
           </CardDescription>
         </CardHeader>
-        <CardContent className="text-center">
+        <CardContent>
           <LoginPage />
         </CardContent>
       </Card>

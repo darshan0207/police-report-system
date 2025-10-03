@@ -13,7 +13,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === "loading") return;
     if (!session) {
-      router.push("/login");
+      router.push("/");
     }
   }, [session, status, router]);
 

@@ -111,7 +111,6 @@ export default function LoginPage() {
             {...register("email")}
             disabled={loading}
             autoComplete="email"
-            onFocus={() => setError("")} // Clear error when user starts typing
           />
           {errors.email && (
             <p className="text-red-600 text-sm mt-1">{errors.email.message}</p>
@@ -145,7 +144,6 @@ export default function LoginPage() {
             {...register("password")}
             disabled={loading}
             autoComplete="current-password"
-            onFocus={() => setError("")}
           />
           {errors.password && (
             <p className="text-red-600 text-sm mt-1">

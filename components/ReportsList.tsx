@@ -12,7 +12,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
+import NotoSansGujarati from "@/lib/fonts/NotoSansGujarati-normal";
 interface DeploymentRecord {
   _id: string;
   date: string;
@@ -53,11 +55,53 @@ export default function ReportsList() {
   useEffect(() => {
     fetchReports(selectedDate);
   }, [selectedDate]);
-  console.log(`/api/reports/pdf/${selectedDate}`);
-  const downloadPDF = () => {
-    if (!selectedDate) return;
-    window.open(`/api/reports/pdf/${selectedDate}`, "_blank");
+
+  const generatePDF = () => {
+    const doc = new jsPDF();
+
+    // ✅ Gujarati font register
+    doc.addFileToVFS("NotoSansGujarati.ttf", NotoSansGujarati);
+    doc.addFont("NotoSansGujarati.ttf", "NotoSansGujarati", "normal");
+    doc.setFont("NotoSansGujarati");
+
+    // ✅ Gujarati headers
+    const head = [["ક્રમ", "પોલીસ સ્ટેશન", "હાજર હોમગાડઝ", "અધિકારી", "ફોટા"]];
+
+    // ✅ Gujarati sample body (you can map reports here)
+    const body = [
+      ["ક્રમ", "પોલીસ સ્ટેશન", "હાજર હોમગાડઝ", "અધિકારી", "ફોટા"],
+      ["૧", "ઉમરા પોલીસ સ્ટેશન", "૩", "મૈરુ યા", "૭"],
+      ["૨", "મસીટ પોલીસ સ્ટેશન", "૧", "મૈરુ યા", "૩"],
+      ["૩", "લસકાણા પોલીસ સ્ટેશન", "૧", "વિજય રાઠોડ", "૭"],
+    ];
+
+    autoTable(doc, {
+      head: [["", "", "", "", ""]], // blank headers
+      body,
+      startY: 20,
+      styles: {
+        font: "NotoSansGujarati", // Body font Gujarati
+        fontSize: 12,
+        halign: "center",
+      },
+      theme: "grid",
+      didDrawPage: () => {
+        doc.setFont("NotoSansGujarati");
+        doc.setFontSize(12);
+        doc.text("ક્રમ", 15, 28);
+        doc.text("પોલીસ સ્ટેશન", 40, 28);
+        doc.text("હાજર હોમગાડઝ", 100, 28);
+        doc.text("અધિકારી", 150, 28);
+        doc.text("ફોટા", 180, 28);
+      },
+    });
+
+    doc.save("Gujarati-Table.pdf");
   };
+  // const downloadPDF = () => {
+  //   if (!selectedDate) return;
+  //   window.open(`/api/reports/pdf/${selectedDate}`, "_blank");
+  // };
   console.log("reports", reports);
   return (
     <div className="space-y-6">
@@ -69,7 +113,7 @@ export default function ReportsList() {
           className="w-fit"
         />
         <Button onClick={() => fetchReports(selectedDate)}>Load Reports</Button>
-        <Button onClick={downloadPDF} variant="outline">
+        <Button onClick={() => generatePDF()} variant="outline">
           Download PDF
         </Button>
       </div>
