@@ -10,7 +10,7 @@ export const reportSchema = z.object({
   dutyCount: z.number().min(1, "ફરજ ઉપર હાજર કુલ સંખ્યા જરૂરી છે"),
   remarks: z.string().optional(),
   images: z
-    .array(z.instanceof(File))
+    .array(z.union([z.string().url(), z.instanceof(File)]))
     .min(1, "કૃપા કરીને ઓછામાં ઓછા એક ફોટો અપલોડ કરો.")
     .max(10, "મહત્તમ 10 ફોટાઓની મંજૂરી છે"),
 });

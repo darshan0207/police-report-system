@@ -27,7 +27,6 @@ interface Unit {
 interface PoliceStation {
   _id: string;
   name: string;
-  unit?: string;
 }
 
 interface DutyType {

@@ -1,0 +1,397 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Pencil, Upload, X } from "lucide-react";
+import { reportSchema, ReportFormData } from "@/lib/schemas/report";
+import { toast } from "sonner";
+import { uploadFile } from "@/lib/cloudinary";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+interface Unit {
+  _id: string;
+  name: string;
+}
+
+interface PoliceStation {
+  _id: string;
+  name: string;
+}
+
+interface DutyType {
+  _id: string;
+  name: string;
+}
+
+interface Officer {
+  _id: string;
+  name: string;
+  isActive: boolean;
+}
+
+export default function ReportEditForm({
+  editDialogOpen,
+  setEditDialogOpen,
+  data,
+}: {
+  editDialogOpen: boolean;
+  setEditDialogOpen: any;
+  data?: any;
+}) {
+  const [units, setUnits] = useState<Unit[]>([]);
+  const [stations, setStations] = useState<PoliceStation[]>([]);
+  const [officers, setOfficers] = useState<Officer[]>([]);
+  const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+    reset,
+    getValues,
+  } = useForm<ReportFormData>({
+    resolver: zodResolver(reportSchema),
+    defaultValues: {
+      date: new Date(data.date).toISOString().slice(0, 10),
+      unit: data?.unit?._id || "",
+      policeStation: data?.policeStation?._id || "",
+      dutyType: data?.dutyType?._id || "",
+      dutyCount: data?.dutyCount || 0,
+      verifyingOfficer: data?.verifyingOfficer?._id || "",
+      remarks: data?.remarks || "",
+      images: data?.images || [],
+    },
+  });
+  console.log("getValues", getValues(), errors);
+  const images = watch("images") || [];
+
+  useEffect(() => {
+    Promise.all([
+      fetch("/api/units").then((r) => r.json()),
+      fetch("/api/police-stations").then((r) => r.json()),
+      fetch("/api/duty-type").then((r) => r.json()),
+      fetch("/api/officers").then((r) => r.json()),
+    ]).then(([u, p, d, o]) => {
+      setUnits(u);
+      setStations(p);
+      setDutyTypes(d);
+      setOfficers(o.filter((officer: Officer) => officer.isActive));
+    });
+  }, []);
+
+  const onSubmit = async (val: any) => {
+    setLoading(true);
+
+    try {
+      // Create FormData to handle file uploads
+      console.log(val.images);
+      // Append images
+
+      const response = await fetch(`/api/reports/${data._id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(val),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
+      }
+      toast.success("રિપોર્ટ સફળતાપૂર્વક અપડેટ થયું");
+      setEditDialogOpen(false);
+      // Refresh the data or update the state as needed
+      // onReportUpdated(); // Call the callback to refresh the report list
+
+      // if (response.ok) {
+      //   toast.success("રિપોર્ટ સફળતાપૂર્વક સેવ થાયો છે!");
+      //   // Reset form
+      //   reset({
+      //     date: new Date().toISOString().slice(0, 10),
+      //     unit: "",
+      //     policeStation: "",
+      //     dutyType: "",
+      //     dutyCount: null as any,
+      //     verifyingOfficer: "",
+      //     remarks: "",
+      //     images: [],
+      //   });
+      // } else {
+      //   const errorData = await response.json();
+      //   toast.error(errorData.error || "Error saving report");
+      // }
+    } catch (error) {
+      console.error("Error saving report:", error);
+      toast.error("Error saving report");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+      <DialogContent className="!max-w-4xl">
+        <DialogHeader>
+          <DialogTitle>એડિટ રિપોર્ટ</DialogTitle>
+        </DialogHeader>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Date Field */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="date" className="mb-2">
+                રિપોર્ટ તારીખ <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="date"
+                type="date"
+                {...register("date")}
+                className={errors.date ? "border-red-500" : ""}
+              />
+              {errors.date && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.date.message}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Deployment Fields */}
+          <div className="border p-4 rounded-lg space-y-4">
+            <h4 className="font-medium">રિપોર્ટ માટેની માહિતી દાખલ કરો</h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Unit */}
+              <div>
+                <Label htmlFor="unit" className="mb-2">
+                  યુનિટ <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={watch("unit")}
+                  onValueChange={(value) => setValue("unit", value)}
+                >
+                  <SelectTrigger
+                    className={errors.unit ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="યુનિટ પસંદ કરો" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {units.map((unit) => (
+                      <SelectItem key={unit._id} value={unit._id}>
+                        {unit.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.unit && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.unit.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Police Station */}
+              <div>
+                <Label htmlFor="policeStation" className="mb-2">
+                  પોલીસ સ્ટેશન <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={watch("policeStation")}
+                  onValueChange={(value) => setValue("policeStation", value)}
+                >
+                  <SelectTrigger
+                    className={errors.policeStation ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="પોલીસ સ્ટેશન પસંદ કરો" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {stations.map((station) => (
+                      <SelectItem key={station._id} value={station._id}>
+                        {station.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.policeStation && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.policeStation.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Duty Type */}
+              <div>
+                <Label htmlFor="dutyType" className="mb-2">
+                  ફરજનો પ્રકાર <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={watch("dutyType")}
+                  onValueChange={(value) => setValue("dutyType", value)}
+                >
+                  <SelectTrigger
+                    className={errors.dutyType ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="ફરજનો પ્રકાર પસંદ કરો" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {dutyTypes.map((dutyType) => (
+                      <SelectItem key={dutyType._id} value={dutyType._id}>
+                        {dutyType.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.dutyType && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.dutyType.message}
+                  </p>
+                )}
+              </div>
+
+              {/* Verifying Officer */}
+              <div>
+                <Label htmlFor="verifyingOfficer" className="mb-2">
+                  ચકાસણી અધિકારી <span className="text-red-500">*</span>
+                </Label>
+                <Select
+                  value={watch("verifyingOfficer")}
+                  onValueChange={(value) => setValue("verifyingOfficer", value)}
+                >
+                  <SelectTrigger
+                    className={errors.verifyingOfficer ? "border-red-500" : ""}
+                  >
+                    <SelectValue placeholder="અધિકારી પસંદ કરો" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {officers.map((officer) => (
+                      <SelectItem key={officer._id} value={officer._id}>
+                        {officer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.verifyingOfficer && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.verifyingOfficer.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Duty Count */}
+              <div>
+                <Label htmlFor="dutyCount" className="mb-2">
+                  ફરજ ઉપર હાજર કુલ સંખ્યા{" "}
+                  <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="dutyCount"
+                  type="number"
+                  min="0"
+                  {...register("dutyCount", { valueAsNumber: true })}
+                  className={errors.dutyCount ? "border-red-500" : ""}
+                />
+                {errors.dutyCount && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.dutyCount.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            {/* Remarks */}
+            <div>
+              <Label htmlFor="remarks" className="mb-2">
+                રિમાકસ
+              </Label>
+              <Textarea
+                id="remarks"
+                {...register("remarks")}
+                placeholder="કોઈપણ રિમાકસ દાખલ કરો..."
+              />
+            </div>
+          </div>
+
+          {/* Image Upload Section */}
+          <div className="border p-4 rounded-lg space-y-4">
+            <div className="flex justify-between items-center">
+              <h4 className="font-medium">
+                ફોટા <span className="text-red-500">*</span>
+              </h4>
+            </div>
+
+            <div className="space-y-4">
+              {/* <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                <Input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  id="image-upload"
+                />
+                <Label
+                  htmlFor="image-upload"
+                  className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+                >
+                  <Upload className="h-8 w-8 text-gray-400" />
+                  <span className="text-sm text-gray-600">
+                    ફોટા અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
+                  </span>
+                  <span className="text-xs text-gray-500">
+                    PNG, JPG, JPEG દરેક 2MB સુધી
+                  </span>
+                </Label>
+              </div>
+              {errors.images && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.images.message}
+                </p>
+              )} */}
+
+              {/* Image Preview */}
+              {images.length > 0 && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {images.map((image, index) => (
+                    <div key={index} className="relative group">
+                      <img
+                        src={image}
+                        alt={`Upload ${index + 1}`}
+                        className="w-full h-24 object-contain rounded-lg"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <Button type="submit" disabled={loading} className="w-full" size="lg">
+            {loading ? "દૈનિક રિપોર્ટ સેવ થય રહો છે..." : "સેવ દૈનિક રિપોર્ટ"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
