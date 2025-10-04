@@ -12,7 +12,9 @@ export async function GET() {
   // }
   try {
     await connectDB();
-    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    const users = await User.find({ type: { $ne: "super-admin" } })
+      .select("-password")
+      .sort({ name: 1 });
     return NextResponse.json(users);
   } catch (error) {
     console.error("Error fetching users:", error);

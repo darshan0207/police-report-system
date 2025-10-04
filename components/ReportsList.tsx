@@ -12,15 +12,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
-import NotoSansGujarati from "@/lib/fonts/NotoSansGujarati-normal";
+import { PDFDownloadLink } from "@react-pdf/renderer";
+import GujaratiPDF from "./GujaratiPDF";
+import GujaratiExcel from "./GujaratiExcel";
 interface DeploymentRecord {
   _id: string;
   date: string;
   unit: { name: string };
   policeStation: { name: string };
-  dutyType: { name: string };
+  dutyType: { name: string; code: string };
   dutyCount: number;
   verifyingOfficer: {
     _id: string;
@@ -44,7 +44,6 @@ export default function ReportsList() {
       const response = await fetch(url);
       const data = await response?.json();
       setReports(data || []);
-      // setSummary(data.summary);
     } catch (error) {
       console.error("Error fetching reports:", error);
     } finally {
@@ -55,53 +54,6 @@ export default function ReportsList() {
     fetchReports(selectedDate);
   }, [selectedDate]);
 
-  const generatePDF = () => {
-    const doc = new jsPDF();
-
-    // ✅ Gujarati font register
-    doc.addFileToVFS("NotoSansGujarati.ttf", NotoSansGujarati);
-    doc.addFont("NotoSansGujarati.ttf", "NotoSansGujarati", "normal");
-    doc.setFont("NotoSansGujarati");
-
-    // ✅ Gujarati headers
-    const head = [["ક્રમ", "પોલીસ સ્ટેશન", "હાજર હોમગાડઝ", "અધિકારી", "ફોટા"]];
-
-    // ✅ Gujarati sample body (you can map reports here)
-    const body = [
-      ["ક્રમ", "પોલીસ સ્ટેશન", "હાજર હોમગાડઝ", "અધિકારી", "ફોટા"],
-      ["૧", "ઉમરા પોલીસ સ્ટેશન", "૩", "મૈરુ યા", "૭"],
-      ["૨", "મસીટ પોલીસ સ્ટેશન", "૧", "મૈરુ યા", "૩"],
-      ["૩", "લસકાણા પોલીસ સ્ટેશન", "૧", "વિજય રાઠોડ", "૭"],
-    ];
-
-    autoTable(doc, {
-      head: [["", "", "", "", ""]], // blank headers
-      body,
-      startY: 20,
-      styles: {
-        font: "NotoSansGujarati", // Body font Gujarati
-        fontSize: 12,
-        halign: "center",
-      },
-      theme: "grid",
-      didDrawPage: () => {
-        doc.setFont("NotoSansGujarati");
-        doc.setFontSize(12);
-        doc.text("ક્રમ", 15, 28);
-        doc.text("પોલીસ સ્ટેશન", 40, 28);
-        doc.text("હાજર હોમગાડઝ", 100, 28);
-        doc.text("અધિકારી", 150, 28);
-        doc.text("ફોટા", 180, 28);
-      },
-    });
-
-    doc.save("Gujarati-Table.pdf");
-  };
-  // const downloadPDF = () => {
-  //   if (!selectedDate) return;
-  //   window.open(`/api/reports/pdf/${selectedDate}`, "_blank");
-  // };
-  console.log("reports", reports);
   return (
     <div className="space-y-6">
       <div className="flex gap-4 items-center">
@@ -111,12 +63,24 @@ export default function ReportsList() {
           onChange={(e) => setSelectedDate(e.target.value)}
           className="w-fit"
         />
-        <Button onClick={() => fetchReports(selectedDate)}>
+        <Button type="button" onClick={() => fetchReports(selectedDate)}>
           રિપોર્ટ લોડ કરો
         </Button>
-        <Button onClick={() => generatePDF()} variant="outline">
-          PDF ડાઉનલોડ કરો
-        </Button>
+        {reports?.length > 0 && (
+          <Button variant="outline">
+            <PDFDownloadLink
+              document={<GujaratiPDF data={reports} date={selectedDate} />}
+              fileName={`દૈનિક_રિપોર્ટ_${selectedDate}.pdf`}
+            >
+              {({ loading }) =>
+                loading ? "PDF તૈયાર થઈ રહ્યું છે..." : "PDF ડાઉનલોડ કરો"
+              }
+            </PDFDownloadLink>
+          </Button>
+        )}
+        {reports?.length > 0 && (
+          <GujaratiExcel data={reports} date={selectedDate} />
+        )}
       </div>
       <Card>
         <CardHeader>
@@ -136,11 +100,25 @@ export default function ReportsList() {
                   <TableRow>
                     <TableHead>ડિવિ / યુનિટ</TableHead>
                     <TableHead>પોલીસ સ્ટેશન</TableHead>
-                    <TableHead>ફરજ</TableHead>
-                    <TableHead>ફોટો</TableHead>
-                    <TableHead>અધિકારીનું નામ</TableHead>
-                    <TableHead>રિમાકસ</TableHead>
-                    <TableHead>કુલ સંખ્યા</TableHead>
+                    <TableHead>
+                      દિવસ ફરજ નાં પોલીસ <br /> સ્ટેશનોની કુલ સંખ્યા
+                    </TableHead>
+                    <TableHead>
+                      રાત્રી ફરજ નાં પોલીસ <br />
+                      સ્ટેશનોની કુલ સંખ્યા
+                    </TableHead>
+                    <TableHead>
+                      દિવસ ફરજ નાં કુલ <br /> ફોટોગ્રાફો
+                    </TableHead>
+                    <TableHead>
+                      રાત્રી ફરજ નાં કુલ <br />
+                      ફોટોગ્રાફો
+                    </TableHead>
+                    <TableHead>ખરાઈ કરનાર અધિકારીનું નામ</TableHead>
+                    <TableHead>નોંધ</TableHead>
+                    <TableHead>
+                      રિમાક ફરજ ઉપર <br /> હાજર કુલ સંખ્યા
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -148,17 +126,39 @@ export default function ReportsList() {
                     <TableRow key={report._id}>
                       <TableCell>{report.unit?.name}</TableCell>
                       <TableCell>{report.policeStation?.name}</TableCell>
-                      <TableCell>{report.dutyType.name}</TableCell>
                       <TableCell>
-                        {report.images.map((image, index) => (
-                          <div key={index} className="relative group">
-                            <img
-                              src={image}
-                              alt={`image ${index + 1}`}
-                              className="w-full h-24 object-contain rounded-lg"
-                            />
-                          </div>
-                        ))}
+                        {report.dutyType.code === "day" ? 1 : ""}
+                      </TableCell>
+                      <TableCell>
+                        {report.dutyType.code === "night" ? 1 : ""}
+                      </TableCell>
+                      <TableCell>
+                        {report.dutyType.code === "day" &&
+                        report?.images?.length > 0
+                          ? report.images.map((image, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={image}
+                                  alt={`image ${index + 1}`}
+                                  className="w-full h-24 object-contain rounded-lg"
+                                />
+                              </div>
+                            ))
+                          : ""}
+                      </TableCell>
+                      <TableCell>
+                        {report.dutyType.code === "night" &&
+                        report?.images?.length > 0
+                          ? report.images.map((image, index) => (
+                              <div key={index} className="relative group">
+                                <img
+                                  src={image}
+                                  alt={`image ${index + 1}`}
+                                  className="w-full h-24 object-contain rounded-lg"
+                                />
+                              </div>
+                            ))
+                          : ""}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

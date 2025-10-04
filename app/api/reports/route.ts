@@ -23,8 +23,11 @@ export async function GET(request: NextRequest) {
     if (date) filter.date = date;
 
     const deployments = await DeploymentRecord.find(filter)
-      .populate("unit policeStation dutyType verifyingOfficer")
-      .sort({ createdAt: -1 });
+      .populate({
+        path: "unit",
+        options: { sort: { name: 1 } },
+      })
+      .populate("policeStation dutyType verifyingOfficer");
     return NextResponse.json(deployments);
   } catch (error) {
     console.error("Error updating user:", error);
