@@ -54,7 +54,7 @@ export default function DutyTypeForm({
       reset(); // Reset form after successful submission
       onCreated();
 
-      toast.success("Duty type created successfully");
+      toast.success("ફરજનો પ્રકાર સફળતાપૂર્વક બનાવ્યું");
     } catch (error) {
       console.error("Error creating duty type:", error);
       toast.error(
@@ -72,12 +72,12 @@ export default function DutyTypeForm({
       <div className="grid grid-cols-1 gap-4">
         <div>
           <Label htmlFor="name" className="mb-2">
-            Duty Type <span className="text-red-500">*</span>
+            ફરજનો પ્રકાર <span className="text-red-500">*</span>
           </Label>
           <Input
             id="name"
             {...register("name")}
-            placeholder="Enter duty type"
+            placeholder="ફરજનો પ્રકાર દાખલ કરો"
             disabled={isLoading}
             className={errors.name ? "border-red-500" : ""}
           />
@@ -88,7 +88,7 @@ export default function DutyTypeForm({
       </div>
 
       <Button type="submit" disabled={isSubmitDisabled} className="min-w-24">
-        {isLoading ? "Submitting..." : "Add Duty Type"}
+        {isLoading ? "સબમિટ કરી રહ્યા છીએ..." : "ફરજનો પ્રકાર ઉમેરો"}
       </Button>
     </form>
   );

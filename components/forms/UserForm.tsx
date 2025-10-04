@@ -68,7 +68,7 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
       const result = await response.json();
       reset();
       onCreated();
-      toast.success("User created successfully");
+      toast.success("યુઝર સફળતાપૂર્વક બનાવવામાં આવ્યો");
     } catch (error) {
       console.error("Error creating user:", error);
       toast.error(
@@ -91,12 +91,12 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
         {/* Name Field */}
         <div className="md:col-span-2">
           <Label htmlFor="name" className="mb-2">
-            Full Name <span className="text-red-500">*</span>
+            પૂરું નામ <span className="text-red-500">*</span>
           </Label>
           <Input
             id="name"
             {...register("name")}
-            placeholder="Enter full name"
+            placeholder="પૂરું નામ દાખલ કરો"
             disabled={isLoading}
             className={errors.name ? "border-red-500" : ""}
           />
@@ -108,13 +108,13 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
         {/* Email Field */}
         <div className="md:col-span-2">
           <Label htmlFor="email" className="mb-2">
-            Email Address <span className="text-red-500">*</span>
+            ઈમેલ <span className="text-red-500">*</span>
           </Label>
           <Input
             id="email"
             type="email"
             {...register("email")}
-            placeholder="Enter email address"
+            placeholder="ઈમેલ દાખલ કરો"
             disabled={isLoading}
             className={errors.email ? "border-red-500" : ""}
             autoComplete="email"
@@ -127,14 +127,14 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
         {/* Password Field */}
         <div>
           <Label htmlFor="password" className="mb-2">
-            Password <span className="text-red-500">*</span>
+            પાસવર્ડ <span className="text-red-500">*</span>
           </Label>
           <div className="relative">
             <Input
               id="password"
               type={showPassword ? "text" : "password"}
               {...register("password")}
-              placeholder="Enter password"
+              placeholder="પાસવર્ડ દાખલ કરો"
               disabled={isLoading}
               className={errors.password ? "border-red-500 pr-10" : "pr-10"}
               autoComplete="new-password"
@@ -158,22 +158,22 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
             </p>
           )}
           <p className="text-sm text-gray-500 mt-2">
-            <strong>Password requirements:</strong> At least 8 characters with
-            uppercase, lowercase, and number
+            <strong>પાસવર્ડ આવશ્યકતાઓ:</strong> ઓછામાં ઓછા 8 અક્ષરો જેમાં મોટા,
+            નાના અને સંખ્યા
           </p>
         </div>
 
         {/* Confirm Password Field */}
         <div>
           <Label htmlFor="confirmPassword" className="mb-2">
-            Confirm Password <span className="text-red-500">*</span>
+            કન્ફર્મ પાસવર્ડ <span className="text-red-500">*</span>
           </Label>
           <div className="relative">
             <Input
               id="confirmPassword"
               type={showConfirmPassword ? "text" : "password"}
               {...register("confirmPassword")}
-              placeholder="Confirm password"
+              placeholder="કન્ફર્મ પાસવર્ડ દાખલ કરો"
               disabled={isLoading}
               className={
                 errors.confirmPassword ? "border-red-500 pr-10" : "pr-10"
@@ -203,7 +203,7 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
       {/* Role Field */}
       <div className="md:col-span-2">
         <Label htmlFor="role" className="mb-2">
-          Role <span className="text-red-500">*</span>
+          રોલ <span className="text-red-500">*</span>
         </Label>
         <Select
           onValueChange={(value: "user" | "admin") => setValue("role", value)}
@@ -211,11 +211,11 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
           disabled={isLoading}
         >
           <SelectTrigger className={errors.role ? "border-red-500" : ""}>
-            <SelectValue placeholder="Select role" />
+            <SelectValue placeholder="રોલ પસંદ કરો" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="user">User</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
+            <SelectItem value="user">યુઝર</SelectItem>
+            <SelectItem value="admin">એડમિન</SelectItem>
           </SelectContent>
         </Select>
         {errors.role && (
@@ -224,7 +224,7 @@ export default function UserForm({ onCreated, initialData }: UserFormProps) {
       </div>
 
       <Button type="submit" disabled={isSubmitDisabled} className="min-w-24">
-        {isLoading ? "Creating User..." : "Create User"}
+        {isLoading ? "સબમિટ કરી રહ્યા છીએ..." : "યુઝર ઉમેરો"}
       </Button>
     </form>
   );

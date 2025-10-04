@@ -20,7 +20,7 @@ export default function DashboardPage() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Loading...
+        લોડ કરી રહ્યું છે...
       </div>
     );
   }

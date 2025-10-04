@@ -124,7 +124,7 @@ export default function UsersTable({
 
       handleDialogClose();
       onUpdated();
-      toast.success("User updated successfully");
+      toast.success("યુઝર સફળતાપૂર્વક અપડેટ થયું");
     } catch (error) {
       console.error("Error updating user:", error);
       toast.error(
@@ -136,11 +136,7 @@ export default function UsersTable({
   };
 
   const deleteUser = async (userId: string) => {
-    if (
-      !confirm(
-        "Are you sure you want to delete this user? This action cannot be undone."
-      )
-    ) {
+    if (!confirm("શું તમે ખરેખર આ યુઝર કાઢી નાખવા માંગો છો??")) {
       return;
     }
 
@@ -157,7 +153,7 @@ export default function UsersTable({
       }
 
       onDeleted();
-      toast.success("User deleted successfully");
+      toast.success("યુઝર સફળતાપૂર્વક કાઢી નાખ્યું");
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error(
@@ -177,11 +173,11 @@ export default function UsersTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead> પૂરું નામ</TableHead>
+            <TableHead>ઈમેલ</TableHead>
+            <TableHead>રોલ</TableHead>
+            <TableHead>સ્ટેટસ</TableHead>
+            <TableHead className="w-32">એકશનસ</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -197,7 +193,7 @@ export default function UsersTable({
                       : "bg-blue-100 text-blue-800"
                   }`}
                 >
-                  {user.role}
+                  {user.role === "admin" ? "એડમિન" : "યુઝર"}
                 </span>
               </TableCell>
               <TableCell>
@@ -208,11 +204,11 @@ export default function UsersTable({
                       : "bg-red-100 text-red-800"
                   }`}
                 >
-                  {user.isActive ? "Active" : "Inactive"}
+                  {user.isActive ? "એક્ટિવ" : "ઇનએક્ટિવ"}
                 </span>
               </TableCell>
               <TableCell>
-                <div className="flex gap-2">
+                <div className="flex">
                   <Dialog
                     open={editDialogOpen && editingUser?._id === user._id}
                     onOpenChange={setEditDialogOpen}
@@ -228,7 +224,7 @@ export default function UsersTable({
                     </DialogTrigger>
                     <DialogContent className="max-w-md">
                       <DialogHeader>
-                        <DialogTitle>Edit User</DialogTitle>
+                        <DialogTitle>એડિટ યુઝર</DialogTitle>
                       </DialogHeader>
                       <form
                         onSubmit={handleSubmit(updateUser)}
@@ -238,12 +234,12 @@ export default function UsersTable({
                           {/* Name Field */}
                           <div>
                             <Label htmlFor="editName" className="mb-2">
-                              Full Name <span className="text-red-500">*</span>
+                              પૂરું નામ <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               id="editName"
                               {...register("name")}
-                              placeholder="Enter full name"
+                              placeholder="પૂરું નામ દાખલ કરો"
                               disabled={isLoading}
                               className={errors.name ? "border-red-500" : ""}
                             />
@@ -257,14 +253,13 @@ export default function UsersTable({
                           {/* Email Field */}
                           <div>
                             <Label htmlFor="editEmail" className="mb-2">
-                              Email Address{" "}
-                              <span className="text-red-500">*</span>
+                              ઈમેલ <span className="text-red-500">*</span>
                             </Label>
                             <Input
                               id="editEmail"
                               type="email"
                               {...register("email")}
-                              placeholder="Enter email address"
+                              placeholder="ઈમેલ દાખલ કરો"
                               disabled={isLoading}
                               className={errors.email ? "border-red-500" : ""}
                             />
@@ -278,7 +273,7 @@ export default function UsersTable({
                           {/* Role Field */}
                           <div>
                             <Label htmlFor="editRole" className="mb-2">
-                              Role <span className="text-red-500">*</span>
+                              રોલ <span className="text-red-500">*</span>
                             </Label>
                             <Select
                               onValueChange={(value: "user" | "admin") =>
@@ -290,11 +285,11 @@ export default function UsersTable({
                               <SelectTrigger
                                 className={errors.role ? "border-red-500" : ""}
                               >
-                                <SelectValue placeholder="Select role" />
+                                <SelectValue placeholder="રોલ પસંદ કરો" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="user">User</SelectItem>
-                                <SelectItem value="admin">Admin</SelectItem>
+                                <SelectItem value="user">યુઝર</SelectItem>
+                                <SelectItem value="admin">એડમિન</SelectItem>
                               </SelectContent>
                             </Select>
                             {errors.role && (
@@ -307,14 +302,14 @@ export default function UsersTable({
                           {/* Password Field (Optional for update) */}
                           <div>
                             <Label htmlFor="editPassword" className="mb-2">
-                              New Password (leave blank to keep current)
+                              નવો પાસવર્ડ (વર્તમાન રાખવા માટે ખાલી છોડી દો)
                             </Label>
                             <div className="relative">
                               <Input
                                 id="editPassword"
                                 type={showPassword ? "text" : "password"}
                                 {...register("password")}
-                                placeholder="Enter new password"
+                                placeholder="નવો પાસવર્ડ દાખલ કરો"
                                 disabled={isLoading}
                                 className={
                                   errors.password
@@ -349,7 +344,7 @@ export default function UsersTable({
                                 htmlFor="editConfirmPassword"
                                 className="mb-2"
                               >
-                                Confirm New Password{" "}
+                                કન્ફર્મ નવો પાસવર્ડ{" "}
                                 <span className="text-red-500">*</span>
                               </Label>
                               <div className="relative">
@@ -359,7 +354,7 @@ export default function UsersTable({
                                     showConfirmPassword ? "text" : "password"
                                   }
                                   {...register("confirmPassword")}
-                                  placeholder="Confirm new password"
+                                  placeholder="કન્ફર્મ નવો પાસવર્ડ દાખલ કરો"
                                   disabled={isLoading}
                                   className={
                                     errors.confirmPassword
@@ -391,7 +386,9 @@ export default function UsersTable({
 
                         <div className="flex gap-2 pt-4">
                           <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Updating..." : "Update User"}
+                            {isLoading
+                              ? "અપડેટ કરી રહ્યું છે..."
+                              : "અપડેટ યુઝર"}
                           </Button>
                           <Button
                             type="button"
@@ -399,20 +396,20 @@ export default function UsersTable({
                             onClick={handleDialogClose}
                             disabled={isLoading}
                           >
-                            Cancel
+                            રદ કરો
                           </Button>
                         </div>
                       </form>
                     </DialogContent>
                   </Dialog>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => deleteUser(user._id)}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </div>
               </TableCell>
             </TableRow>
@@ -423,11 +420,8 @@ export default function UsersTable({
       {users.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">
-            No users found
+            હજુ સુધી કોઈ યુઝર બનાવ્યા નથી
           </h3>
-          <p className="text-sm text-muted-foreground">
-            Create your first user to get started
-          </p>
         </div>
       )}
 
@@ -435,9 +429,7 @@ export default function UsersTable({
         <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span>
-                {users.length} user{users.length !== 1 ? "s" : ""} total
-              </span>
+              <span>કુલ {users.length} યુઝર</span>
             </div>
           </div>
         </div>

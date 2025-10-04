@@ -90,7 +90,7 @@ export default function OfficersTable({
 
       handleDialogClose();
       onUpdated();
-      toast.success("Officer updated successfully");
+      toast.success("અધિકારી સફળતાપૂર્વક અપડેટ થયું");
     } catch (error) {
       console.error("Error updating officer:", error);
       toast.error(
@@ -102,7 +102,7 @@ export default function OfficersTable({
   };
 
   const deletePoliceStation = async (stationId: string) => {
-    if (!confirm("Are you sure you want to delete this officer? ")) {
+    if (!confirm("શું તમે ખરેખર આ અધિકારી કાઢી નાખવા માંગો છો? ")) {
       return;
     }
 
@@ -119,7 +119,7 @@ export default function OfficersTable({
       }
 
       onDeleted();
-      toast.success("Officer deleted successfully");
+      toast.success("અધિકારી સફળતાપૂર્વક કાઢી નાખ્યું");
     } catch (error) {
       console.error("Error deleting officer:", error);
       toast.error(
@@ -133,8 +133,8 @@ export default function OfficersTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead>અધિકારીનું નામ</TableHead>
+            <TableHead className="w-32">એકશનસ</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -142,7 +142,7 @@ export default function OfficersTable({
             <TableRow key={officer._id}>
               <TableCell className="font-medium">{officer.name}</TableCell>
               <TableCell>
-                <div className="flex gap-2">
+                <div className="flex">
                   <Dialog
                     open={editDialogOpen && editingOfficer?._id === officer._id}
                     onOpenChange={setEditDialogOpen}
@@ -158,7 +158,7 @@ export default function OfficersTable({
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Officer</DialogTitle>
+                        <DialogTitle>એડિટ અધિકારી</DialogTitle>
                       </DialogHeader>
                       <form
                         onSubmit={handleSubmit(updateOfficer)}
@@ -169,12 +169,13 @@ export default function OfficersTable({
                             htmlFor="editPoliceStationName"
                             className="mb-2"
                           >
-                            Officer Name <span className="text-red-500">*</span>
+                            અધિકારીનું નામ{" "}
+                            <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="editPoliceStationName"
                             {...register("name")}
-                            placeholder="Enter officer name"
+                            placeholder="અધિકારીનું નામ દાખલ કરો"
                             className={errors.name ? "border-red-500" : ""}
                           />
                           {errors.name && (
@@ -185,7 +186,9 @@ export default function OfficersTable({
                         </div>
                         <div className="flex gap-2 pt-4">
                           <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Updating..." : "Update Officer"}
+                            {isLoading
+                              ? "અપડેટ કરી રહ્યું છે..."
+                              : "અપડેટ અધિકારી"}
                           </Button>
                           <Button
                             type="button"
@@ -193,20 +196,20 @@ export default function OfficersTable({
                             onClick={handleDialogClose}
                             disabled={isLoading}
                           >
-                            Cancel
+                            રદ કરો
                           </Button>
                         </div>
                       </form>
                     </DialogContent>
                   </Dialog>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => deletePoliceStation(officer._id)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </div>
               </TableCell>
             </TableRow>
@@ -216,7 +219,7 @@ export default function OfficersTable({
       {officers.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">
-            No officer created yet
+            હજુ સુધી કોઈ અધિકારી બનાવ્યા નથી
           </h3>
         </div>
       )}
@@ -225,10 +228,7 @@ export default function OfficersTable({
         <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span>
-                {officers.length} officer
-                {officers.length !== 1 ? "s" : ""} total
-              </span>
+              <span>કુલ {officers.length} અધિકારી</span>
             </div>
           </div>
         </div>

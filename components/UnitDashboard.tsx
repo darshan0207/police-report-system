@@ -8,9 +8,9 @@ export default function UnitDashboard() {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Unit Dashboard</h1>
+        <h1 className="text-3xl font-bold">ડેશબોર્ડ</h1>
         <Button onClick={() => signOut()} variant="outline">
-          Sign Out
+          સાઇન આઉટ
         </Button>
       </div>
       <ReportForm />

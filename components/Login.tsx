@@ -37,7 +37,7 @@ export default function LoginPage() {
     async (data: LoginFormData) => {
       // Basic rate limiting
       if (attempts >= 5) {
-        setError("Too many failed attempts. Please try again later.");
+        setError("ઘણા બધા નિષ્ફળ પ્રયાસો. કૃપા કરીને પછીથી ફરી પ્રયાસ કરો.");
         return;
       }
 
@@ -56,9 +56,9 @@ export default function LoginPage() {
           setAttempts(newAttempts);
 
           if (newAttempts >= 3) {
-            setError("Invalid credentials. Too many attempts.");
+            setError("અમાન્ય ઓળખપત્રો. ઘણા બધા પ્રયાસો.");
           } else {
-            setError("Invalid email or password");
+            setError("અમાન્ય ઈમેલ અથવા પાસવર્ડ.");
           }
 
           setTimeout(() => setFocus("password"), 100);
@@ -74,7 +74,7 @@ export default function LoginPage() {
         }
       } catch (err) {
         console.error("Login error:", err);
-        setError("Connection error. Please try again.");
+        setError("કનેક્શન ભૂલ. કૃપા કરીને ફરી પ્રયાસ કરો.");
         setTimeout(() => setFocus("email"), 100);
       } finally {
         setLoading(false);
@@ -101,12 +101,12 @@ export default function LoginPage() {
         {/* Email Field */}
         <div className="space-y-2">
           <Label htmlFor="email" className="mb-2">
-            Email Address <span className="text-red-500">*</span>
+            ઈમેલ <span className="text-red-500">*</span>
           </Label>
           <Input
             id="email"
             type="email"
-            placeholder="Enter your email"
+            placeholder="તમારો ઈમેલ દાખલ કરો"
             className={errors.email ? "border-red-500" : ""}
             {...register("email")}
             disabled={loading}
@@ -121,7 +121,7 @@ export default function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">
-              Password <span className="text-red-500">*</span>
+              પાસવર્ડ <span className="text-red-500">*</span>
             </Label>
             <button
               type="button"
@@ -139,7 +139,7 @@ export default function LoginPage() {
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
-            placeholder="Enter your password"
+            placeholder="તમારો પાસવર્ડ દાખલ કરો"
             className={errors.password ? "border-red-500" : ""}
             {...register("password")}
             disabled={loading}
@@ -170,10 +170,10 @@ export default function LoginPage() {
         {loading ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            Signing in...
+            સાઇન ઇન કરી રહ્યા છીએ...
           </>
         ) : (
-          "Sign In"
+          "સાઇન ઇન કરો"
         )}
       </Button>
 

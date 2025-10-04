@@ -90,7 +90,7 @@ export default function DutyTypesTable({
 
       handleDialogClose();
       onUpdated();
-      toast.success("Duty Type updated successfully");
+      toast.success("ફરજનો પ્રકાર સફળતાપૂર્વક અપડેટ થયું");
     } catch (error) {
       console.error("Error updating duty type:", error);
       toast.error(
@@ -102,7 +102,7 @@ export default function DutyTypesTable({
   };
 
   const deletePoliceStation = async (stationId: string) => {
-    if (!confirm("Are you sure you want to delete this duty type? ")) {
+    if (!confirm("શું તમે ખરેખર આ ફરજનો પ્રકાર કાઢી નાખવા માંગો છો? ")) {
       return;
     }
 
@@ -119,7 +119,7 @@ export default function DutyTypesTable({
       }
 
       onDeleted();
-      toast.success("Duty type deleted successfully");
+      toast.success("ફરજનો પ્રકાર સફળતાપૂર્વક કાઢી નાખ્યું");
     } catch (error) {
       console.error("Error deleting duty type:", error);
       toast.error(
@@ -133,8 +133,8 @@ export default function DutyTypesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead>ફરજનો પ્રકાર</TableHead>
+            <TableHead className="w-32">એકશનસ</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -142,7 +142,7 @@ export default function DutyTypesTable({
             <TableRow key={dutyType._id}>
               <TableCell className="font-medium">{dutyType.name}</TableCell>
               <TableCell>
-                <div className="flex gap-2">
+                <div className="flex">
                   <Dialog
                     open={
                       editDialogOpen && editingDutyType?._id === dutyType._id
@@ -160,7 +160,7 @@ export default function DutyTypesTable({
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Duty Type</DialogTitle>
+                        <DialogTitle>એડિટ ફરજનો પ્રકાર</DialogTitle>
                       </DialogHeader>
                       <form
                         onSubmit={handleSubmit(updateDutyType)}
@@ -168,12 +168,12 @@ export default function DutyTypesTable({
                       >
                         <div>
                           <Label htmlFor="editDutyType" className="mb-2">
-                            Duty Type <span className="text-red-500">*</span>
+                            ફરજનો પ્રકાર <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="editDutyType"
                             {...register("name")}
-                            placeholder="Enter duty type"
+                            placeholder="ફરજનો પ્રકાર દાખલ કરો"
                             className={errors.name ? "border-red-500" : ""}
                           />
                           {errors.name && (
@@ -184,7 +184,9 @@ export default function DutyTypesTable({
                         </div>
                         <div className="flex gap-2 pt-4">
                           <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Updating..." : "Update Duty Type"}
+                            {isLoading
+                              ? "અપડેટ કરી રહ્યું છે..."
+                              : "અપડેટ ફરજનો પ્રકાર"}
                           </Button>
                           <Button
                             type="button"
@@ -192,20 +194,20 @@ export default function DutyTypesTable({
                             onClick={handleDialogClose}
                             disabled={isLoading}
                           >
-                            Cancel
+                            રદ કરો
                           </Button>
                         </div>
                       </form>
                     </DialogContent>
                   </Dialog>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => deletePoliceStation(dutyType._id)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </div>
               </TableCell>
             </TableRow>
@@ -215,7 +217,7 @@ export default function DutyTypesTable({
       {dutyTypes.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">
-            No duty type created yet
+            હજુ સુધી કોઈ ફરજનો પ્રકાર બનાવ્યા નથી
           </h3>
         </div>
       )}
@@ -224,10 +226,7 @@ export default function DutyTypesTable({
         <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span>
-                {dutyTypes.length} duty type
-                {dutyTypes.length !== 1 ? "s" : ""} total
-              </span>
+              <span>કુલ {dutyTypes.length} ફરજનો પ્રકાર</span>
             </div>
           </div>
         </div>

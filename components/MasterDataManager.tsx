@@ -11,11 +11,11 @@ export default function MasterDataManager() {
   return (
     <Tabs defaultValue="units">
       <TabsList className="grid w-full md:grid-cols-1 lg:grid-cols-5">
-        <TabsTrigger value="units">Units</TabsTrigger>
-        <TabsTrigger value="stations">Police Stations</TabsTrigger>
-        <TabsTrigger value="officers">Officers</TabsTrigger>
-        <TabsTrigger value="dutytypes">Duty Types</TabsTrigger>
-        <TabsTrigger value="users">Users</TabsTrigger>
+        <TabsTrigger value="units">યુનિટ</TabsTrigger>
+        <TabsTrigger value="stations">પોલીસ સ્ટેશન</TabsTrigger>
+        <TabsTrigger value="officers">અધિકારી</TabsTrigger>
+        <TabsTrigger value="dutytypes">ફરજના પ્રકારો</TabsTrigger>
+        <TabsTrigger value="users">યુઝર</TabsTrigger>
       </TabsList>
 
       <TabsContent value="units">

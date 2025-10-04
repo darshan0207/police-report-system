@@ -34,7 +34,7 @@ export default function UsersTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Add New User</CardTitle>
+          <CardTitle>નવો યુઝર ઉમેરો</CardTitle>
         </CardHeader>
         <CardContent>
           <UserForm onCreated={fetchData} />
@@ -43,7 +43,7 @@ export default function UsersTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>User List</CardTitle>
+          <CardTitle>યુઝરની યાદી</CardTitle>
         </CardHeader>
         <CardContent>
           <UsersTable

@@ -50,7 +50,7 @@ export default function UnitForm({ onCreated, initialData }: UnitFormProps) {
       reset(); // Reset form after successful submission
       onCreated();
 
-      toast.success("Unit created successfully");
+      toast.success("યુનિટ સફળતાપૂર્વક બનાવ્યું");
     } catch (error) {
       console.error("Error creating unit:", error);
       toast.error(
@@ -68,12 +68,12 @@ export default function UnitForm({ onCreated, initialData }: UnitFormProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <Label htmlFor="name" className="mb-2">
-            Unit Name <span className="text-red-500">*</span>
+            યુનિટનું નામ <span className="text-red-500">*</span>
           </Label>
           <Input
             id="name"
             {...register("name")}
-            placeholder="Enter unit name"
+            placeholder="યુનિટનું નામ દાખલ કરો"
             disabled={isLoading}
             className={errors.name ? "border-red-500" : ""}
           />
@@ -84,12 +84,12 @@ export default function UnitForm({ onCreated, initialData }: UnitFormProps) {
 
         <div>
           <Label htmlFor="type" className="mb-2">
-            Type <span className="text-red-500">*</span>
+            યુનિટનો પ્રકાર <span className="text-red-500">*</span>
           </Label>
           <Input
             id="type"
             {...register("type")}
-            placeholder="Enter unit type"
+            placeholder="યુનિટનો પ્રકાર દાખલ કરો"
             disabled={isLoading}
             className={errors.type ? "border-red-500" : ""}
           />
@@ -100,7 +100,7 @@ export default function UnitForm({ onCreated, initialData }: UnitFormProps) {
       </div>
 
       <Button type="submit" disabled={isSubmitDisabled} className="min-w-24">
-        {isLoading ? "Submitting..." : "Add Unit"}
+        {isLoading ? "સબમિટ કરી રહ્યા છીએ..." : "યુનિટ ઉમેરો"}
       </Button>
     </form>
   );

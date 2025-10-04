@@ -34,7 +34,7 @@ export default function UnitsTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Add New Unit</CardTitle>
+          <CardTitle>નવું યુનિટ ઉમેરો</CardTitle>
         </CardHeader>
         <CardContent>
           <UnitForm onCreated={fetchData} />
@@ -42,7 +42,7 @@ export default function UnitsTab() {
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Unit List</CardTitle>
+          <CardTitle>યુનિટની યાદી</CardTitle>
         </CardHeader>
         <CardContent>
           <UnitsTable

@@ -55,7 +55,7 @@ export default function StationForm({
       reset(); // Reset form after successful submission
       onCreated();
 
-      toast.success("Police station created successfully");
+      toast.success("પોલીસ સ્ટેશન સફળતાપૂર્વક બનાવ્યું");
     } catch (error) {
       console.error("Error creating police station:", error);
       toast.error(
@@ -75,12 +75,12 @@ export default function StationForm({
       <div className="grid grid-cols-1 gap-4">
         <div>
           <Label htmlFor="name" className="mb-2">
-            Police Station Name <span className="text-red-500">*</span>
+            પોલીસ સ્ટેશનનું નામ <span className="text-red-500">*</span>
           </Label>
           <Input
             id="name"
             {...register("name")}
-            placeholder="Enter police station name"
+            placeholder="પોલીસ સ્ટેશનનું નામ દાખલ કરો"
             disabled={isLoading}
             className={errors.name ? "border-red-500" : ""}
           />
@@ -91,7 +91,7 @@ export default function StationForm({
       </div>
 
       <Button type="submit" disabled={isSubmitDisabled} className="min-w-24">
-        {isLoading ? "Submitting..." : "Add Police Station"}
+        {isLoading ? "સબમિટ કરી રહ્યા છીએ..." : "પોલીસ સ્ટેશન ઉમેરો"}
       </Button>
     </form>
   );

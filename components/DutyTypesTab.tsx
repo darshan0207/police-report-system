@@ -31,7 +31,7 @@ export default function DutyTypesTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Add New Duty Type</CardTitle>
+          <CardTitle>નવો ફરજનો પ્રકાર ઉમેરો</CardTitle>
         </CardHeader>
         <CardContent>
           <DutyTypeForm onCreated={fetchData} />
@@ -40,7 +40,7 @@ export default function DutyTypesTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Duty Type List</CardTitle>
+          <CardTitle>ફરજના પ્રકારોની યાદી</CardTitle>
         </CardHeader>
         <CardContent>
           <DutyTypesTable

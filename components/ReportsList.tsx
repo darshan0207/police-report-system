@@ -51,7 +51,6 @@ export default function ReportsList() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchReports(selectedDate);
   }, [selectedDate]);
@@ -112,54 +111,36 @@ export default function ReportsList() {
           onChange={(e) => setSelectedDate(e.target.value)}
           className="w-fit"
         />
-        <Button onClick={() => fetchReports(selectedDate)}>Load Reports</Button>
+        <Button onClick={() => fetchReports(selectedDate)}>
+          રિપોર્ટ લોડ કરો
+        </Button>
         <Button onClick={() => generatePDF()} variant="outline">
-          Download PDF
+          PDF ડાઉનલોડ કરો
         </Button>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Deployment Records</CardTitle>
+          <CardTitle>રેકોર્ડ્સ</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-4">Loading...</div>
+            <div className="text-center py-4">લોડ કરી રહ્યું છે...</div>
           ) : reports.length === 0 ? (
             <div className="text-center py-4 text-gray-500">
-              No reports found for selected date
+              પસંદ કરેલી તારીખ માટે કોઈ રિપોર્ટ મળ્યો નથી
             </div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>ડિવિઝન / યુનિટ</TableHead>
+                    <TableHead>ડિવિ / યુનિટ</TableHead>
                     <TableHead>પોલીસ સ્ટેશન</TableHead>
-                    <TableHead>
-                      દિવસ ફરજ નાં પોલીસ <br /> સ્ટેશનોની કુલ સંખ્યા
-                    </TableHead>
-                    <TableHead>
-                      રાત્રી ફરજ નાં પોલીસ <br />
-                      સ્ટેશનોની કુલ સંખ્યા
-                    </TableHead>
-                    <TableHead>
-                      દિવસ ફરજ નાં કુલ <br /> ફોટોગ્રાફોની સંખ્યા
-                    </TableHead>
-                    <TableHead>
-                      રાત્રી ફરજ નાં કુલ <br />
-                      ફોટોગ્રાફોની સંખ્યા
-                    </TableHead>
-                    <TableHead>
-                      ખરાઈ કરનાર <br /> અધિકારીનું નામ
-                    </TableHead>
-                    <TableHead>
-                      પોલીસ સ્ટેશનની હાજરી મુજબ <br /> ફોટોગ્રાફ ન મળેલ હોય તો{" "}
-                      <br />
-                      કરેલ કાર્યવાહી ની વિગત
-                    </TableHead>
-                    <TableHead>
-                      રિમાક ફરજ ઉપર <br /> હાજર કુલ સંખ્યા
-                    </TableHead>
+                    <TableHead>ફરજ</TableHead>
+                    <TableHead>ફોટો</TableHead>
+                    <TableHead>અધિકારીનું નામ</TableHead>
+                    <TableHead>રિમાકસ</TableHead>
+                    <TableHead>કુલ સંખ્યા</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -167,22 +148,17 @@ export default function ReportsList() {
                     <TableRow key={report._id}>
                       <TableCell>{report.unit?.name}</TableCell>
                       <TableCell>{report.policeStation?.name}</TableCell>
+                      <TableCell>{report.dutyType.name}</TableCell>
                       <TableCell>
-                        {report.dutyType?.name == "Day" ? 1 : ""}
-                      </TableCell>
-                      <TableCell>
-                        {report.dutyType?.name == "Night" ? 1 : ""}
-                      </TableCell>
-
-                      <TableCell>
-                        {report.dutyType?.name == "Day"
-                          ? report.images?.length
-                          : ""}
-                      </TableCell>
-                      <TableCell>
-                        {report.dutyType?.name == "Night"
-                          ? report.images?.length
-                          : ""}
+                        {report.images.map((image, index) => (
+                          <div key={index} className="relative group">
+                            <img
+                              src={image}
+                              alt={`image ${index + 1}`}
+                              className="w-full h-24 object-contain rounded-lg"
+                            />
+                          </div>
+                        ))}
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">

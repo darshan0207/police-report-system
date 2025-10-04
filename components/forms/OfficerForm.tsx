@@ -54,7 +54,7 @@ export default function OfficerForm({
       reset(); // Reset form after successful submission
       onCreated();
 
-      toast.success("Officer created successfully");
+      toast.success("અધિકારી સફળતાપૂર્વક બનાવ્યું");
     } catch (error) {
       console.error("Error creating officer:", error);
       toast.error(
@@ -72,12 +72,12 @@ export default function OfficerForm({
       <div className="grid grid-cols-1 gap-4">
         <div>
           <Label htmlFor="name" className="mb-2">
-            Officer Name <span className="text-red-500">*</span>
+            અધિકારીનું નામ <span className="text-red-500">*</span>
           </Label>
           <Input
             id="name"
             {...register("name")}
-            placeholder="Enter officer name"
+            placeholder="અધિકારીનું નામ દાખલ કરો"
             disabled={isLoading}
             className={errors.name ? "border-red-500" : ""}
           />
@@ -88,7 +88,7 @@ export default function OfficerForm({
       </div>
 
       <Button type="submit" disabled={isSubmitDisabled} className="min-w-24">
-        {isLoading ? "Submitting..." : "Add officer"}
+        {isLoading ? "સબમિટ કરી રહ્યા છીએ..." : "અધિકારી ઉમેરો"}
       </Button>
     </form>
   );

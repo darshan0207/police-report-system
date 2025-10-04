@@ -31,7 +31,7 @@ export default function StationsTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Add New Police Station</CardTitle>
+          <CardTitle>નવું પોલીસ સ્ટેશન ઉમેરો</CardTitle>
         </CardHeader>
         <CardContent>
           <StationForm onCreated={fetchData} />
@@ -40,7 +40,7 @@ export default function StationsTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Police Station List</CardTitle>
+          <CardTitle>પોલીસ સ્ટેશનની યાદી</CardTitle>
         </CardHeader>
         <CardContent>
           <StationsTable

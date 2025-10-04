@@ -32,7 +32,7 @@ export default function OfficersTab() {
     <div className="space-y-4">
       <Card>
         <CardHeader>
-          <CardTitle>Add New Officer</CardTitle>
+          <CardTitle>નવો અધિકારી ઉમેરો</CardTitle>
         </CardHeader>
         <CardContent>
           <OfficerForm onCreated={fetchData} />
@@ -41,7 +41,7 @@ export default function OfficersTab() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Officer List</CardTitle>
+          <CardTitle>અધિકારીની યાદી</CardTitle>
         </CardHeader>
         <CardContent>
           <OfficersTable

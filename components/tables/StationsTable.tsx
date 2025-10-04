@@ -97,7 +97,7 @@ export default function StationsTable({
 
       handleDialogClose();
       onUpdated();
-      toast.success("Police Station updated successfully");
+      toast.success("પોલીસ સ્ટેશન સફળતાપૂર્વક અપડેટ થયું");
     } catch (error) {
       console.error("Error updating police station:", error);
       toast.error(
@@ -111,7 +111,7 @@ export default function StationsTable({
   };
 
   const deletePoliceStation = async (stationId: string) => {
-    if (!confirm("Are you sure you want to delete this police station? ")) {
+    if (!confirm("શું તમે ખરેખર આ પોલીસ સ્ટેશન કાઢી નાખવા માંગો છો? ")) {
       return;
     }
 
@@ -128,7 +128,7 @@ export default function StationsTable({
       }
 
       onDeleted();
-      toast.success("Police station deleted successfully");
+      toast.success("પોલીસ સ્ટેશન સફળતાપૂર્વક કાઢી નાખ્યું");
     } catch (error) {
       console.error("Error deleting police station:", error);
       toast.error(
@@ -144,8 +144,8 @@ export default function StationsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead>પોલીસ સ્ટેશનનું નામ</TableHead>
+            <TableHead className="w-32">એકશનસ</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -153,7 +153,7 @@ export default function StationsTable({
             <TableRow key={station._id}>
               <TableCell className="font-medium">{station.name}</TableCell>
               <TableCell>
-                <div className="flex gap-2">
+                <div className="flex">
                   <Dialog
                     open={
                       editDialogOpen &&
@@ -172,7 +172,7 @@ export default function StationsTable({
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Police Station</DialogTitle>
+                        <DialogTitle>એડિટ પોલીસ સ્ટેશન</DialogTitle>
                       </DialogHeader>
                       <form
                         onSubmit={handleSubmit(updatePoliceStation)}
@@ -183,13 +183,13 @@ export default function StationsTable({
                             htmlFor="editPoliceStationName"
                             className="mb-2"
                           >
-                            Police Station Name{" "}
+                            પોલીસ સ્ટેશનનું નામ{" "}
                             <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="editPoliceStationName"
                             {...register("name")}
-                            placeholder="Enter police station name"
+                            placeholder="પોલીસ સ્ટેશનનું નામ દાખલ કરો"
                             className={errors.name ? "border-red-500" : ""}
                           />
                           {errors.name && (
@@ -201,8 +201,8 @@ export default function StationsTable({
                         <div className="flex gap-2 pt-4">
                           <Button type="submit" disabled={isLoading}>
                             {isLoading
-                              ? "Updating..."
-                              : "Update Police Station"}
+                              ? "અપડેટ કરી રહ્યું છે..."
+                              : "અપડેટ પોલીસ સ્ટેશન"}
                           </Button>
                           <Button
                             type="button"
@@ -210,20 +210,20 @@ export default function StationsTable({
                             onClick={handleDialogClose}
                             disabled={isLoading}
                           >
-                            Cancel
+                            રદ કરો
                           </Button>
                         </div>
                       </form>
                     </DialogContent>
                   </Dialog>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => deletePoliceStation(station._id)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </div>
               </TableCell>
             </TableRow>
@@ -233,7 +233,7 @@ export default function StationsTable({
       {stations.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">
-            No police station created yet
+            હજુ સુધી કોઈ પોલીસ સ્ટેશન બનાવ્યા નથી
           </h3>
         </div>
       )}
@@ -242,10 +242,7 @@ export default function StationsTable({
         <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span>
-                {stations.length} police station
-                {stations.length !== 1 ? "s" : ""} total
-              </span>
+              <span>કુલ {stations.length} પોલીસ સ્ટેશન</span>
             </div>
           </div>
         </div>

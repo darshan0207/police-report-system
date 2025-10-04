@@ -62,7 +62,7 @@ export default function ReportForm() {
       unit: "",
       policeStation: "",
       dutyType: "",
-      dutyCount: null as any,
+      dutyCount: 0,
       verifyingOfficer: "",
       remarks: "",
       images: [],
@@ -91,15 +91,15 @@ export default function ReportForm() {
     // Validate file types and sizes
     const validFiles = files.filter((file) => {
       const isValidType = file.type.startsWith("image/");
-      // const isValidSize = file.size <= 5 * 1024 * 1024; // 5MB limit
-      const isValidSize = file.size <= 200 * 1024; // 200kb limit
+      const isValidSize = file.size <= 2 * 1024 * 1024; // 5MB limit
+      // const isValidSize = file.size <= 200 * 1024; // 200kb limit
 
       if (!isValidType) {
         toast.error(`File ${file.name} is not an image`);
         return false;
       }
       if (!isValidSize) {
-        toast.error(`File ${file.name} is too large (max 200KB)`);
+        toast.error(`File ${file.name} is too large (max 2MB)`);
         return false;
       }
       return true;
@@ -147,7 +147,7 @@ export default function ReportForm() {
       });
 
       if (response.ok) {
-        toast.success("Report saved successfully!");
+        toast.success("રિપોર્ટ સફળતાપૂર્વક સેવ થાયો છે!");
         // Reset form
         reset({
           date: new Date().toISOString().slice(0, 10),
@@ -176,7 +176,9 @@ export default function ReportForm() {
       {/* Date Field */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <Label htmlFor="date">Report Date</Label>
+          <Label htmlFor="date" className="mb-2">
+            રિપોર્ટ તારીખ <span className="text-red-500">*</span>
+          </Label>
           <Input
             id="date"
             type="date"
@@ -191,20 +193,20 @@ export default function ReportForm() {
 
       {/* Deployment Fields */}
       <div className="border p-4 rounded-lg space-y-4">
-        <h4 className="font-medium">Deployment Information</h4>
+        <h4 className="font-medium">રિપોર્ટ માટેની માહિતી દાખલ કરો</h4>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Unit */}
           <div>
             <Label htmlFor="unit" className="mb-2">
-              Unit <span className="text-red-500">*</span>
+              યુનિટ <span className="text-red-500">*</span>
             </Label>
             <Select
               value={watch("unit")}
               onValueChange={(value) => setValue("unit", value)}
             >
               <SelectTrigger className={errors.unit ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select Unit" />
+                <SelectValue placeholder="યુનિટ પસંદ કરો" />
               </SelectTrigger>
               <SelectContent>
                 {units.map((unit) => (
@@ -222,7 +224,7 @@ export default function ReportForm() {
           {/* Police Station */}
           <div>
             <Label htmlFor="policeStation" className="mb-2">
-              Police Station <span className="text-red-500">*</span>
+              પોલીસ સ્ટેશન <span className="text-red-500">*</span>
             </Label>
             <Select
               value={watch("policeStation")}
@@ -231,7 +233,7 @@ export default function ReportForm() {
               <SelectTrigger
                 className={errors.policeStation ? "border-red-500" : ""}
               >
-                <SelectValue placeholder="Select Station" />
+                <SelectValue placeholder="પોલીસ સ્ટેશન પસંદ કરો" />
               </SelectTrigger>
               <SelectContent>
                 {stations.map((station) => (
@@ -251,7 +253,7 @@ export default function ReportForm() {
           {/* Duty Type */}
           <div>
             <Label htmlFor="dutyType" className="mb-2">
-              Duty Type <span className="text-red-500">*</span>
+              ફરજનો પ્રકાર <span className="text-red-500">*</span>
             </Label>
             <Select
               value={watch("dutyType")}
@@ -260,7 +262,7 @@ export default function ReportForm() {
               <SelectTrigger
                 className={errors.dutyType ? "border-red-500" : ""}
               >
-                <SelectValue placeholder="Select Duty Type" />
+                <SelectValue placeholder="ફરજનો પ્રકાર પસંદ કરો" />
               </SelectTrigger>
               <SelectContent>
                 {dutyTypes.map((dutyType) => (
@@ -280,7 +282,7 @@ export default function ReportForm() {
           {/* Verifying Officer */}
           <div>
             <Label htmlFor="verifyingOfficer" className="mb-2">
-              Verifying Officer <span className="text-red-500">*</span>
+              ચકાસણી અધિકારી <span className="text-red-500">*</span>
             </Label>
             <Select
               value={watch("verifyingOfficer")}
@@ -289,7 +291,7 @@ export default function ReportForm() {
               <SelectTrigger
                 className={errors.verifyingOfficer ? "border-red-500" : ""}
               >
-                <SelectValue placeholder="Select Officer" />
+                <SelectValue placeholder="અધિકારી પસંદ કરો" />
               </SelectTrigger>
               <SelectContent>
                 {officers.map((officer) => (
@@ -311,7 +313,7 @@ export default function ReportForm() {
           {/* Duty Count */}
           <div>
             <Label htmlFor="dutyCount" className="mb-2">
-              Duty Count <span className="text-red-500">*</span>
+              ફરજ ઉપર હાજર કુલ સંખ્યા <span className="text-red-500">*</span>
             </Label>
             <Input
               id="dutyCount"
@@ -331,12 +333,12 @@ export default function ReportForm() {
         {/* Remarks */}
         <div>
           <Label htmlFor="remarks" className="mb-2">
-            Remarks
+            રિમાકસ
           </Label>
           <Textarea
             id="remarks"
             {...register("remarks")}
-            placeholder="Enter any remarks..."
+            placeholder="કોઈપણ રિમાકસ દાખલ કરો..."
           />
         </div>
       </div>
@@ -345,7 +347,7 @@ export default function ReportForm() {
       <div className="border p-4 rounded-lg space-y-4">
         <div className="flex justify-between items-center">
           <h4 className="font-medium">
-            Upload Photos <span className="text-red-500">*</span>
+            ફોટા અપલોડ કરો <span className="text-red-500">*</span>
           </h4>
         </div>
 
@@ -365,13 +367,16 @@ export default function ReportForm() {
             >
               <Upload className="h-8 w-8 text-gray-400" />
               <span className="text-sm text-gray-600">
-                Click to upload photos or drag and drop
+                ફોટા અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
               </span>
               <span className="text-xs text-gray-500">
-                PNG, JPG, JPEG up to 200KB each
+                PNG, JPG, JPEG દરેક 2MB સુધી
               </span>
             </Label>
           </div>
+          {errors.images && (
+            <p className="text-red-500 text-sm mt-1">{errors.images.message}</p>
+          )}
 
           {/* Image Preview */}
           {images.length > 0 && (
@@ -401,7 +406,7 @@ export default function ReportForm() {
       </div>
 
       <Button type="submit" disabled={loading} className="w-full" size="lg">
-        {loading ? "Saving Report..." : "Save Daily Report"}
+        {loading ? "દૈનિક રિપોર્ટ સેવ થય રહો છે..." : "સેવ દૈનિક રિપોર્ટ"}
       </Button>
     </form>
   );

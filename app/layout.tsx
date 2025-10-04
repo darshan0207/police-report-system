@@ -7,8 +7,8 @@ import { Providers } from "@/lib/providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Police Report System",
-  description: "Daily deployment management system for Home Guards units",
+  title: "સુરત જિલ્લા હોમગાર્ડઝ - દૈનિક ફરજ રિપોર્ટ",
+  description: "હોમગાર્ડ્સ યુનિટ્સ માટે દૈનિક જમાવટ વ્યવસ્થાપન પ્રણાલી",
 };
 
 export default function RootLayout({

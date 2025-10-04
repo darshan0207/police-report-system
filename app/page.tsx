@@ -26,7 +26,7 @@ export default function HomePage() {
   if (status === "loading") {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        Loading...
+        લોડ કરી રહ્યું છે...
       </div>
     );
   }
@@ -40,11 +40,9 @@ export default function HomePage() {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <CardTitle className="text-3xl font-bold">
-            Police Report System
+            દૈનિક ફરજ રિપોર્ટ
           </CardTitle>
-          <CardDescription>
-            Daily deployment management system for Home Guards units
-          </CardDescription>
+          <CardDescription>સુરત જિલ્લા હોમગાર્ડઝ</CardDescription>
         </CardHeader>
         <CardContent>
           <LoginPage />

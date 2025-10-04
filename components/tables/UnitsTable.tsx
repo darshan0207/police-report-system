@@ -93,7 +93,7 @@ export default function UnitsTable({
 
       handleDialogClose();
       onUpdated();
-      toast.success("Unit updated successfully");
+      toast.success("યુનિટ સફળતાપૂર્વક અપડેટ થયું");
     } catch (error) {
       console.error("Error updating unit:", error);
       toast.error(
@@ -105,7 +105,7 @@ export default function UnitsTable({
   };
 
   const deleteUnit = async (unitId: string) => {
-    if (!confirm("Are you sure you want to delete this unit?")) {
+    if (!confirm("શું તમે ખરેખર આ યુનિટ કાઢી નાખવા માંગો છો??")) {
       return;
     }
 
@@ -122,7 +122,7 @@ export default function UnitsTable({
       }
 
       onDeleted();
-      toast.success("Unit deleted successfully");
+      toast.success("યુનિટ સફળતાપૂર્વક કાઢી નાખ્યું");
     } catch (error) {
       console.error("Error deleting unit:", error);
       toast.error(
@@ -136,9 +136,9 @@ export default function UnitsTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead className="w-32">Actions</TableHead>
+            <TableHead>યુનિટનું નામ</TableHead>
+            <TableHead>યુનિટનો પ્રકાર</TableHead>
+            <TableHead className="w-32">એકશનસ</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -147,7 +147,7 @@ export default function UnitsTable({
               <TableCell className="font-medium">{unit.name}</TableCell>
               <TableCell>{unit.type || "-"}</TableCell>
               <TableCell>
-                <div className="flex gap-2">
+                <div className="flex">
                   <Dialog
                     open={editDialogOpen && editingUnit?._id === unit._id}
                     onOpenChange={setEditDialogOpen}
@@ -163,7 +163,7 @@ export default function UnitsTable({
                     </DialogTrigger>
                     <DialogContent>
                       <DialogHeader>
-                        <DialogTitle>Edit Unit</DialogTitle>
+                        <DialogTitle>એડિટ યુનિટ</DialogTitle>
                       </DialogHeader>
                       <form
                         onSubmit={handleSubmit(updateUnit)}
@@ -171,12 +171,12 @@ export default function UnitsTable({
                       >
                         <div>
                           <Label htmlFor="editUnitName" className="mb-2">
-                            Unit Name <span className="text-red-500">*</span>
+                            યુનિટનું નામ <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="editUnitName"
                             {...register("name")}
-                            placeholder="Enter unit name"
+                            placeholder="યુનિટનું નામ દાખલ કરો"
                             className={errors.name ? "border-red-500" : ""}
                           />
                           {errors.name && (
@@ -187,12 +187,13 @@ export default function UnitsTable({
                         </div>
                         <div>
                           <Label htmlFor="editUnitType" className="mb-2">
-                            Type <span className="text-red-500">*</span>
+                            યુનિટનો પ્રકાર{" "}
+                            <span className="text-red-500">*</span>
                           </Label>
                           <Input
                             id="editUnitType"
                             {...register("type")}
-                            placeholder="Enter unit type"
+                            placeholder="યુનિટનો પ્રકાર દાખલ કરો"
                             className={errors.type ? "border-red-500" : ""}
                           />
                           {errors.type && (
@@ -203,7 +204,9 @@ export default function UnitsTable({
                         </div>
                         <div className="flex gap-2 pt-4">
                           <Button type="submit" disabled={isLoading}>
-                            {isLoading ? "Updating..." : "Update Unit"}
+                            {isLoading
+                              ? "અપડેટ કરી રહ્યું છે..."
+                              : "અપડેટ યુનિટ"}
                           </Button>
                           <Button
                             type="button"
@@ -211,20 +214,20 @@ export default function UnitsTable({
                             onClick={handleDialogClose}
                             disabled={isLoading}
                           >
-                            Cancel
+                            રદ કરો
                           </Button>
                         </div>
                       </form>
                     </DialogContent>
                   </Dialog>
-                  <Button
+                  {/* <Button
                     variant="outline"
                     size="sm"
                     onClick={() => deleteUnit(unit._id)}
                     className="text-red-600 hover:text-red-700"
                   >
                     <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </div>
               </TableCell>
             </TableRow>
@@ -234,7 +237,7 @@ export default function UnitsTable({
       {units.length === 0 && (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <h3 className="text-lg font-medium text-muted-foreground mb-2">
-            No units created yet
+            હજુ સુધી કોઈ યુનિટ બનાવ્યા નથી
           </h3>
         </div>
       )}
@@ -243,9 +246,7 @@ export default function UnitsTable({
         <div className="flex items-center justify-between text-sm text-muted-foreground mt-4">
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2">
-              <span>
-                {units.length} unit{units.length !== 1 ? "s" : ""} total
-              </span>
+              <span>કુલ {units.length} યુનિટ</span>
             </div>
           </div>
         </div>

@@ -5,39 +5,39 @@ import { z } from "zod";
 const baseUserSchema = {
   name: z
     .string()
-    .min(1, "Name is required")
-    .min(2, "Name must be at least 2 characters")
-    .max(50, "Name must be less than 50 characters")
+    .min(1, "પૂરું નામ જરૂરી છે")
+    .min(2, "પૂરું નામ ઓછામાં ઓછા 2 અક્ષરોનું હોવું જોઈએ.")
+    .max(50, "પૂરું નામ 50 અક્ષરોથી ઓછું હોવું જોઈએ")
     .trim(),
   email: z
     .string()
-    .min(1, "Email is required")
-    .email("Please enter a valid email address")
+    .min(1, "ઈમેલ આવશ્યક છે")
+    .email("કૃપા કરીને માન્ય ઈમેલ દાખલ કરો")
     .trim()
     .toLowerCase(),
   role: z.enum(["admin", "user"], {
-    errorMap: () => ({ message: "Please select a role" }),
+    errorMap: () => ({ message: "કૃપા કરીને રોલ પસંદ કરો" }),
   }),
 };
 
 // Password validation
 const passwordSchema = z
   .string()
-  .min(8, "Password must be at least 8 characters")
+  .min(8, "પાસવર્ડ ઓછામાં ઓછો 8 અક્ષરોનો હોવો જોઈએ")
   .regex(
     /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-    "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+    "પાસવર્ડમાં ઓછામાં ઓછો એક મોટો અક્ષર, એક નાનો અક્ષર અને એક સંખ્યા હોવી જોઈએ."
   );
 
 // Create user schema
 export const userSchema = z
   .object({
     ...baseUserSchema,
-    password: z.string().min(1, "Password is required").pipe(passwordSchema),
-    confirmPassword: z.string().min(1, "Please confirm your password"),
+    password: z.string().min(1, "પાસવર્ડ જરૂરી છે").pipe(passwordSchema),
+    confirmPassword: z.string().min(1, "કૃપા કરીને તમારો પાસવર્ડ કન્ફર્મ કરો."),
   })
   .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "પાસવર્ડ્સ મેળ ખાતા નથી",
     path: ["confirmPassword"],
   });
 
@@ -52,14 +52,14 @@ export const userUpdateSchema = z
   .object({
     name: z
       .string()
-      .min(1, "Name is required")
-      .min(2, "Name must be at least 2 characters")
-      .max(50, "Name must be less than 50 characters")
+      .min(1, "પૂરું નામ જરૂરી છે")
+      .min(2, "પૂરું નામ ઓછામાં ઓછા 2 અક્ષરોનું હોવું જોઈએ.")
+      .max(50, "પૂરું નામ 50 અક્ષરોથી ઓછું હોવું જોઈએ")
       .trim(),
     email: z
       .string()
-      .min(1, "Email is required")
-      .email("Please enter a valid email address")
+      .min(1, "ઈમેલ આવશ્યક છે")
+      .email("કૃપા કરીને માન્ય ઈમેલ દાખલ કરો")
       .trim()
       .toLowerCase(),
     password: z
@@ -71,14 +71,14 @@ export const userUpdateSchema = z
           (val.length >= 8 && /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(val)),
         {
           message:
-            "Password must be at least 8 characters with uppercase, lowercase, and number",
+            "પાસવર્ડમાં ઓછામાં ઓછો એક મોટો અક્ષર, એક નાનો અક્ષર અને એક સંખ્યા હોવી જોઈએ.",
         }
       ),
     confirmPassword: z.string().optional(),
     role: baseUserSchema.role.optional(),
   })
   .refine((data) => !data.password || data.password === data.confirmPassword, {
-    message: "Passwords don't match",
+    message: "પાસવર્ડ્સ મેળ ખાતા નથી",
     path: ["confirmPassword"],
   });
 
