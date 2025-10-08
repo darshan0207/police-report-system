@@ -111,7 +111,8 @@ export default function GujaratiExcel({
     "રાત્રી ફરજ નાં કુલ ફોટોગ્રાફોની સંખ્યા":
       item.dutyType?.code === "night" ? item.images?.length : "",
     "ખરાઈ કરનાર અધિકારીનું નામ": item.verifyingOfficer?.name || "",
-    નોંધ: item?.remarks || "",
+    "પોલીસ સ્ટેશનની હાજરી મુજબ ફોટોગ્રાફ ન મળેલ હોય તો કરેલ કાયર્વાહીની વિગત":
+      item?.remarks || "",
     "રિમાક ફરજ ઉપર હાજર કુલ સંખ્યા": item?.dutyCount || "",
   }));
 
@@ -124,7 +125,8 @@ export default function GujaratiExcel({
     "દિવસ ફરજ નાં કુલ ફોટોગ્રાફોની સંખ્યા": totalDayFoot,
     "રાત્રી ફરજ નાં કુલ ફોટોગ્રાફોની સંખ્યા": totalNightFoot,
     "ખરાઈ કરનાર અધિકારીનું નામ": "",
-    નોંધ: "",
+    "પોલીસ સ્ટેશનની હાજરી મુજબ ફોટોગ્રાફ ન મળેલ હોય તો કરેલ કાયર્વાહીની વિગત":
+      "",
     "રિમાક ફરજ ઉપર હાજર કુલ સંખ્યા": totalCount,
   });
 

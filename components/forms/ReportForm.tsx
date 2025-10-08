@@ -18,6 +18,7 @@ import { Upload, X } from "lucide-react";
 import { reportSchema, ReportFormData } from "@/lib/schemas/report";
 import { toast } from "sonner";
 import { uploadFile } from "@/lib/cloudinary";
+import { useSession } from "next-auth/react";
 
 interface Unit {
   _id: string;
@@ -46,6 +47,7 @@ export default function ReportForm() {
   const [officers, setOfficers] = useState<Officer[]>([]);
   const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
   const [loading, setLoading] = useState(false);
+  const { data: session } = useSession();
 
   const {
     register,
@@ -65,10 +67,12 @@ export default function ReportForm() {
       verifyingOfficer: "",
       remarks: "",
       images: [],
+      otherImage: "",
     },
   });
 
   const images = watch("images") || [];
+  const otherImage = watch("otherImage") || "";
 
   useEffect(() => {
     Promise.all([
@@ -90,7 +94,7 @@ export default function ReportForm() {
     // Validate file types and sizes
     const validFiles = files.filter((file) => {
       const isValidType = file.type.startsWith("image/");
-      const isValidSize = file.size <= 2 * 1024 * 1024; // 5MB limit
+      const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB limit
       // const isValidSize = file.size <= 200 * 1024; // 200kb limit
 
       if (!isValidType) {
@@ -111,6 +115,38 @@ export default function ReportForm() {
     const newImages = images.filter((_, i) => i !== index);
     setValue("images", newImages);
   };
+  const handleNewImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) return;
+
+    const file = files[0];
+    const isValidType = file.type.startsWith("image/");
+    const isValidSize = file.size <= 2 * 1024 * 1024;
+
+    if (!isValidType) {
+      toast.error(`File ${file.name} is not an image`);
+      return;
+    }
+
+    if (!isValidSize) {
+      toast.error(`File ${file.name} is too large (max 2MB)`);
+      return;
+    }
+
+    // Convert to base64 string
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setValue("otherImage", event.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const removeNewImage = () => {
+    setValue("otherImage", "");
+  };
 
   const onSubmit = async (data: ReportFormData) => {
     setLoading(true);
@@ -120,7 +156,7 @@ export default function ReportForm() {
       console.log(data.images);
       if (data.images?.length) {
         try {
-          const uploadPromises = data.images.map(async (image, index) => {
+          const uploadPromises = data.images.map(async (image: any, index) => {
             try {
               return await uploadFile(image);
             } catch (error) {
@@ -133,6 +169,18 @@ export default function ReportForm() {
           data.images = uploadedUrls.filter((url) => url !== null); // Remove failed uploads
 
           console.log("Uploaded URLs:", data.images);
+        } catch (error) {
+          console.error("Image upload process failed:", error);
+        }
+      }
+
+      if (data.otherImage) {
+        try {
+          const odakhImagesData = await uploadFile(data.otherImage);
+
+          data.otherImage = odakhImagesData; // Remove failed uploads
+
+          console.log("Uploaded URLs:", otherImage);
         } catch (error) {
           console.error("Image upload process failed:", error);
         }
@@ -157,6 +205,7 @@ export default function ReportForm() {
           verifyingOfficer: "",
           remarks: "",
           images: [],
+          otherImage: "",
         });
       } else {
         const errorData = await response.json();
@@ -169,7 +218,7 @@ export default function ReportForm() {
       setLoading(false);
     }
   };
-
+  console.log("otherImage", otherImage);
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Date Field */}
@@ -330,77 +379,141 @@ export default function ReportForm() {
         </div>
 
         {/* Remarks */}
-        <div>
-          <Label htmlFor="remarks" className="mb-2">
-            રિમાકસ
-          </Label>
-          <Textarea
-            id="remarks"
-            {...register("remarks")}
-            placeholder="કોઈપણ રિમાકસ દાખલ કરો..."
-          />
-        </div>
+
+        {session?.user?.role === "admin" && (
+          <div>
+            <Label htmlFor="remarks" className="mb-2">
+              રિમાકસ
+            </Label>
+            <Textarea
+              id="remarks"
+              {...register("remarks")}
+              placeholder="કોઈપણ રિમાકસ દાખલ કરો..."
+            />
+          </div>
+        )}
       </div>
 
       {/* Image Upload Section */}
-      <div className="border p-4 rounded-lg space-y-4">
-        <div className="flex justify-between items-center">
-          <h4 className="font-medium">
-            ફોટા અપલોડ કરો <span className="text-red-500">*</span>
-          </h4>
-        </div>
-
-        <div className="space-y-4">
-          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-            <Input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleImageUpload}
-              className="hidden"
-              id="image-upload"
-            />
-            <Label
-              htmlFor="image-upload"
-              className="cursor-pointer flex flex-col items-center justify-center space-y-2"
-            >
-              <Upload className="h-8 w-8 text-gray-400" />
-              <span className="text-sm text-gray-600">
-                ફોટા અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
-              </span>
-              <span className="text-xs text-gray-500">
-                PNG, JPG, JPEG દરેક 2MB સુધી
-              </span>
-            </Label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="border p-4 rounded-lg space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="font-medium">
+              ફોટા અપલોડ કરો <span className="text-red-500">*</span>
+            </h4>
           </div>
-          {errors.images && (
-            <p className="text-red-500 text-sm mt-1">{errors.images.message}</p>
-          )}
 
-          {/* Image Preview */}
-          {images.length > 0 && (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {images.map((image, index) => (
-                <div key={index} className="relative group">
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <Input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+                id="image-upload"
+              />
+              <Label
+                htmlFor="image-upload"
+                className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+              >
+                <Upload className="h-8 w-8 text-gray-400" />
+                <span className="text-sm text-gray-600">
+                  ફોટા અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
+                </span>
+                <span className="text-xs text-gray-500">
+                  PNG, JPG, JPEG દરેક 2MB સુધી
+                </span>
+              </Label>
+            </div>
+            {errors.images && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.images.message}
+              </p>
+            )}
+
+            {/* Image Preview */}
+            {images.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map((image, index) => (
+                  <div key={index} className="relative group">
+                    <img
+                      src={URL.createObjectURL(image)}
+                      alt={`Upload ${index + 1}`}
+                      className="w-full h-24 object-contain rounded-lg"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                    <div className="text-xs text-gray-500 truncate mt-1">
+                      {image.name}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="border p-4 rounded-lg space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="font-medium">
+              ઓળખપત્ર ફોટો અપલોડ કરો <span className="text-red-500">*</span>
+            </h4>
+          </div>
+
+          <div className="space-y-4">
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleNewImageUpload}
+                className="hidden"
+                id="image1-upload"
+              />
+              <Label
+                htmlFor="image1-upload"
+                className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+              >
+                <Upload className="h-8 w-8 text-gray-400" />
+                <span className="text-sm text-gray-600">
+                  ઓળખપત્ર ફોટો અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
+                </span>
+                <span className="text-xs text-gray-500">
+                  PNG, JPG, JPEG દરેક 2MB સુધી
+                </span>
+              </Label>
+            </div>
+            {errors.otherImage && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.otherImage.message}
+              </p>
+            )}
+
+            {/* Image Preview */}
+            {otherImage && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="relative group">
                   <img
-                    src={URL.createObjectURL(image)}
-                    alt={`Upload ${index + 1}`}
-                    className="w-full h-24 object-contain rounded-lg"
+                    src={otherImage}
+                    alt={`Upload preview`}
+                    className="w-full h-24 object-contain rounded-lg border"
+                    onLoad={(e) => URL.revokeObjectURL(e.target?.src)} // Clean up memory
                   />
                   <button
                     type="button"
-                    onClick={() => removeImage(index)}
+                    onClick={() => removeNewImage()}
                     className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     <X className="h-3 w-3" />
                   </button>
-                  <div className="text-xs text-gray-500 truncate mt-1">
-                    {image.name}
-                  </div>
                 </div>
-              ))}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 

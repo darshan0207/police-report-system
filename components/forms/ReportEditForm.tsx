@@ -80,10 +80,12 @@ export default function ReportEditForm({
       verifyingOfficer: data?.verifyingOfficer?._id || "",
       remarks: data?.remarks || "",
       images: data?.images || [],
+      otherImage: data?.otherImage || "",
     },
   });
   console.log("getValues", getValues(), errors);
   const images = watch("images") || [];
+  const otherImage = watch("otherImage") || "";
 
   useEffect(() => {
     Promise.all([
@@ -382,6 +384,13 @@ export default function ReportEditForm({
                       />
                     </div>
                   ))}
+                  <div className="relative group">
+                    <img
+                      src={otherImage}
+                      alt={`Upload`}
+                      className="w-full h-24 object-contain rounded-lg"
+                    />
+                  </div>
                 </div>
               )}
             </div>

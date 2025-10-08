@@ -9,6 +9,7 @@ export interface IDeploymentRecord extends Document {
   dutyCount: number;
   remarks?: string;
   images: string[];
+  otherImage: string | "";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +36,7 @@ const DeploymentRecordSchema = new Schema<IDeploymentRecord>(
     dutyCount: { type: Number, default: 0 },
     images: [{ type: String }],
     remarks: { type: String },
+    otherImage: { type: String },
   },
   {
     timestamps: true,

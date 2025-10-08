@@ -68,7 +68,9 @@ const styles = StyleSheet.create({
 
 const GujaratiPDF = ({ data, date }: { data: any[]; date: string }) => {
   console.log("data in pdf", data);
-
+  if (data.length < 0) {
+    return null;
+  }
   const totalDayCount =
     data.length > 0
       ? data.reduce(
@@ -157,87 +159,98 @@ const GujaratiPDF = ({ data, date }: { data: any[]; date: string }) => {
       : "";
 
   return (
-    <Document>
-      <Page size="A4" orientation="landscape" style={styles.page}>
-        <Text style={styles.title}>દૈનિક રિપોર્ટ</Text>
+    <>
+      <Document>
+        <Page size="A4" orientation="landscape" style={styles.page}>
+          <Text style={styles.title}>દૈનિક રિપોર્ટ</Text>
 
-        <View style={styles.table}>
-          {/* Header */}
-          <View style={[styles.row, styles.headerRow]}>
-            <Text style={[styles.cell, styles.lastCell, styles.col100]}>
-              {date}
-            </Text>
-          </View>
-          <View style={[styles.row, styles.headerRow]}>
-            <Text style={[styles.cell, styles.colDept]}>ક્રમ</Text>
-            <Text style={[styles.cell, styles.colName]}>ડિવિ / યુનિટ</Text>
-            <Text style={[styles.cell, styles.colName]}>પોલીસ સ્ટેશન</Text>
-            <Text style={[styles.cell, styles.colDept]}>
-              દિવસ ફરજ નાં પોલીસ સ્ટેશનોની કુલ સંખ્યા
-            </Text>
-            <Text style={[styles.cell, styles.colDept]}>
-              રાત્રી ફરજ નાં પોલીસ સ્ટેશનોની કુલ સંખ્યા
-            </Text>
-            <Text style={[styles.cell, styles.colDept]}>
-              દિવસ ફરજ નાં કુલ ફોટોગ્રાફોની સંખ્યા
-            </Text>
-            <Text style={[styles.cell, styles.colDept]}>
-              રાત્રી ફરજ નાં કુલ ફોટોગ્રાફોની સંખ્યા
-            </Text>
-            <Text style={[styles.cell, styles.colName]}>
-              ખરાઈ કરનાર અધિકારીનું નામ
-            </Text>
-            <Text style={[styles.cell, styles.colName]}>નોંધ</Text>
-            <Text style={[styles.cell, styles.colDept, styles.lastCell]}>
-              રિમાક ફરજ ઉપર હાજર કુલ સંખ્યા
-            </Text>
-          </View>
-
-          {/* Rows */}
-          {data.map((item, index) => (
-            <View key={index} style={[styles.row, styles.lastCell]}>
-              <Text style={[styles.cell, styles.colDept]}>{index + 1}</Text>
-              <Text style={[styles.cell, styles.colName]}>
-                {item?.unit?.name}
-              </Text>
-              <Text style={[styles.cell, styles.colName]}>
-                {item?.policeStation?.name}
-              </Text>
-              <Text style={[styles.cell, styles.colDept]}>
-                {item.dutyType?.code === "day" ? 1 : ""}
-              </Text>
-              <Text style={[styles.cell, styles.colDept]}>
-                {item.dutyType?.code === "night" ? 1 : ""}
-              </Text>
-              <Text style={[styles.cell, styles.colDept]}>
-                {item.dutyType?.code === "day" ? item.images?.length : ""}
-              </Text>
-              <Text style={[styles.cell, styles.colDept]}>
-                {item.dutyType?.code === "night" ? item.images?.length : ""}
-              </Text>
-              <Text style={[styles.cell, styles.colName]}>
-                {item.verifyingOfficer?.name}
-              </Text>
-              <Text style={[styles.cell, styles.colName]}>{item?.remarks}</Text>
-              <Text style={[styles.cell, styles.colDept, styles.lastCell]}>
-                {item?.dutyCount}
+          <View style={styles.table}>
+            {/* Header */}
+            <View style={[styles.row, styles.headerRow]}>
+              <Text style={[styles.cell, styles.lastCell, styles.col100]}>
+                {date}
               </Text>
             </View>
-          ))}
-          <View style={[styles.row, styles.headerRow, styles.lastbottomCell]}>
-            <Text style={[styles.cell, styles.col38]}>કુલ</Text>
-            <Text style={[styles.cell, styles.colDept]}>{totalDayCount}</Text>
-            <Text style={[styles.cell, styles.colDept]}>{totalNightCount}</Text>
-            <Text style={[styles.cell, styles.colDept]}>{totalDayFoot}</Text>
-            <Text style={[styles.cell, styles.colDept]}>{totalNightFoot}</Text>
-            <Text style={[styles.cell, styles.col32]}></Text>
-            <Text style={[styles.cell, styles.colDept, styles.lastCell]}>
-              {totalCount}
-            </Text>
+            <View style={[styles.row, styles.headerRow]}>
+              <Text style={[styles.cell, styles.colDept]}>ક્રમ</Text>
+              <Text style={[styles.cell, styles.colName]}>ડિવિ / યુનિટ</Text>
+              <Text style={[styles.cell, styles.colName]}>પોલીસ સ્ટેશન</Text>
+              <Text style={[styles.cell, styles.colDept]}>
+                દિવસ ફરજ નાં પોલીસ સ્ટેશનોની કુલ સંખ્યા
+              </Text>
+              <Text style={[styles.cell, styles.colDept]}>
+                રાત્રી ફરજ નાં પોલીસ સ્ટેશનોની કુલ સંખ્યા
+              </Text>
+              <Text style={[styles.cell, styles.colDept]}>
+                દિવસ ફરજ નાં કુલ ફોટોગ્રાફોની સંખ્યા
+              </Text>
+              <Text style={[styles.cell, styles.colDept]}>
+                રાત્રી ફરજ નાં કુલ ફોટોગ્રાફોની સંખ્યા
+              </Text>
+              <Text style={[styles.cell, styles.colName]}>
+                ખરાઈ કરનાર અધિકારીનું નામ
+              </Text>
+              <Text style={[styles.cell, styles.colName]}>
+                પોલીસ સ્ટેશનની હાજરી મુજબ ફોટોગ્રાફ ન મળેલ હોય તો કરેલ કાર્યવાહી
+                ની વિગત
+              </Text>
+              <Text style={[styles.cell, styles.colDept, styles.lastCell]}>
+                રિમાક ફરજ ઉપર હાજર કુલ સંખ્યા
+              </Text>
+            </View>
+
+            {/* Rows */}
+            {data.map((item, index) => (
+              <View key={index} style={[styles.row, styles.lastCell]}>
+                <Text style={[styles.cell, styles.colDept]}>{index + 1}</Text>
+                <Text style={[styles.cell, styles.colName]}>
+                  {item?.unit?.name}
+                </Text>
+                <Text style={[styles.cell, styles.colName]}>
+                  {item?.policeStation?.name}
+                </Text>
+                <Text style={[styles.cell, styles.colDept]}>
+                  {item.dutyType?.code === "day" ? 1 : ""}
+                </Text>
+                <Text style={[styles.cell, styles.colDept]}>
+                  {item.dutyType?.code === "night" ? 1 : ""}
+                </Text>
+                <Text style={[styles.cell, styles.colDept]}>
+                  {item.dutyType?.code === "day" ? item.images?.length : ""}
+                </Text>
+                <Text style={[styles.cell, styles.colDept]}>
+                  {item.dutyType?.code === "night" ? item.images?.length : ""}
+                </Text>
+                <Text style={[styles.cell, styles.colName]}>
+                  {item.verifyingOfficer?.name}
+                </Text>
+                <Text style={[styles.cell, styles.colName]}>
+                  {item?.remarks}
+                </Text>
+                <Text style={[styles.cell, styles.colDept, styles.lastCell]}>
+                  {item?.dutyCount}
+                </Text>
+              </View>
+            ))}
+            <View style={[styles.row, styles.headerRow, styles.lastbottomCell]}>
+              <Text style={[styles.cell, styles.col38]}>કુલ</Text>
+              <Text style={[styles.cell, styles.colDept]}>{totalDayCount}</Text>
+              <Text style={[styles.cell, styles.colDept]}>
+                {totalNightCount}
+              </Text>
+              <Text style={[styles.cell, styles.colDept]}>{totalDayFoot}</Text>
+              <Text style={[styles.cell, styles.colDept]}>
+                {totalNightFoot}
+              </Text>
+              <Text style={[styles.cell, styles.col32]}></Text>
+              <Text style={[styles.cell, styles.colDept, styles.lastCell]}>
+                {totalCount}
+              </Text>
+            </View>
           </View>
-        </View>
-      </Page>
-    </Document>
+        </Page>
+      </Document>
+    </>
   );
 };
 

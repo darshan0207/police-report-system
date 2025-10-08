@@ -12,11 +12,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import GujaratiPDF from "./GujaratiPDF";
 import GujaratiExcel from "./GujaratiExcel";
 import { Download, Pencil } from "lucide-react";
 import ReportEditForm from "./forms/ReportEditForm";
+import PDFDownload from "./PDFDwnld";
 
 interface DeploymentRecord {
   _id: string;
@@ -31,6 +30,7 @@ interface DeploymentRecord {
   };
   remarks: string;
   images: string[];
+  otherImage: string | "";
 }
 
 export default function ReportsList() {
@@ -74,17 +74,8 @@ export default function ReportsList() {
           <Button type="button" onClick={() => fetchReports(selectedDate)}>
             રિપોર્ટ લોડ કરો
           </Button>
-          {reports?.length > 0 && (
-            <Button variant="outline">
-              <PDFDownloadLink
-                document={<GujaratiPDF data={reports} date={selectedDate} />}
-                fileName={`દૈનિક_રિપોર્ટ_${selectedDate}.pdf`}
-              >
-                {({ loading }) =>
-                  loading ? "PDF તૈયાર થઈ રહ્યું છે..." : "PDF ડાઉનલોડ કરો"
-                }
-              </PDFDownloadLink>
-            </Button>
+          {reports?.length > 0 && selectedDate && (
+            <PDFDownload data={reports} date={selectedDate} />
           )}
           {reports?.length > 0 && (
             <GujaratiExcel data={reports} date={selectedDate} />
@@ -143,8 +134,9 @@ export default function ReportsList() {
                         </TableCell>
                         <TableCell>
                           {report.dutyType.code === "day" &&
-                          report?.images?.length > 0
-                            ? report.images.map((image, index) => (
+                          report?.images?.length > 0 ? (
+                            <>
+                              {report.images.map((image, index) => (
                                 <div
                                   key={index}
                                   className="relative group inline-block mr-2"
@@ -166,13 +158,39 @@ export default function ReportsList() {
                                     <Download className="w-6 h-6 text-white drop-shadow-md" />
                                   </a>
                                 </div>
-                              ))
-                            : ""}
+                              ))}
+                              {report?.otherImage && (
+                                <div className="relative group inline-block mr-2">
+                                  <img
+                                    src={report?.otherImage}
+                                    alt={`image`}
+                                    className="w-12 h-12 object-contain rounded-lg border border-gray-200 transition-transform duration-200 group-hover:scale-105"
+                                  />
+
+                                  {/* Download icon overlay */}
+                                  <a
+                                    href={report?.otherImage}
+                                    download={`image_${
+                                      report?.images?.length + 1
+                                    }.jpg`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg"
+                                  >
+                                    <Download className="w-6 h-6 text-white drop-shadow-md" />
+                                  </a>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            ""
+                          )}
                         </TableCell>
                         <TableCell>
                           {report.dutyType.code === "night" &&
-                          report?.images?.length > 0
-                            ? report.images.map((image, index) => (
+                          report?.images?.length > 0 ? (
+                            <>
+                              {report.images.map((image, index) => (
                                 <div
                                   key={index}
                                   className="relative group inline-block mr-2"
@@ -194,8 +212,33 @@ export default function ReportsList() {
                                     <Download className="w-6 h-6 text-white drop-shadow-md" />
                                   </a>
                                 </div>
-                              ))
-                            : ""}
+                              ))}
+                              {report?.otherImage && (
+                                <div className="relative group inline-block mr-2">
+                                  <img
+                                    src={report?.otherImage}
+                                    alt={`image`}
+                                    className="w-12 h-12 object-contain rounded-lg border border-gray-200 transition-transform duration-200 group-hover:scale-105"
+                                  />
+
+                                  {/* Download icon overlay */}
+                                  <a
+                                    href={report?.otherImage}
+                                    download={`image_${
+                                      report?.images?.length + 1
+                                    }.jpg`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 rounded-lg"
+                                  >
+                                    <Download className="w-6 h-6 text-white drop-shadow-md" />
+                                  </a>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            ""
+                          )}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
