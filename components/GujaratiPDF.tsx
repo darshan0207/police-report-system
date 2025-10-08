@@ -157,6 +157,32 @@ const GujaratiPDF = ({ data, date }: { data: any[]; date: string }) => {
           0
         )
       : "";
+  const options: Intl.DateTimeFormatOptions = {
+    day: "2-digit",
+    month: "numeric",
+    year: "numeric",
+  };
+  const englishToGujaratiMap: { [key: string]: string } = {
+    "0": "૦",
+    "1": "૧",
+    "2": "૨",
+    "3": "૩",
+    "4": "૪",
+    "5": "૫",
+    "6": "૬",
+    "7": "૭",
+    "8": "૮",
+    "9": "૯",
+    "/": " / ",
+  };
+
+  let formatted = date
+    ? new Date(date)
+        ?.toLocaleDateString("gu-IN", options)
+        ?.split("")
+        ?.map((char) => englishToGujaratiMap[char] || char)
+        ?.join("")
+    : "";
 
   return (
     <>
@@ -168,7 +194,7 @@ const GujaratiPDF = ({ data, date }: { data: any[]; date: string }) => {
             {/* Header */}
             <View style={[styles.row, styles.headerRow]}>
               <Text style={[styles.cell, styles.lastCell, styles.col100]}>
-                {date}
+                તા. {formatted}
               </Text>
             </View>
             <View style={[styles.row, styles.headerRow]}>

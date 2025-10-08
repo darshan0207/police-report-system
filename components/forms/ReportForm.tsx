@@ -460,7 +460,8 @@ export default function ReportForm() {
         <div className="border p-4 rounded-lg space-y-4">
           <div className="flex justify-between items-center">
             <h4 className="font-medium">
-              ઓળખપત્ર ફોટો અપલોડ કરો <span className="text-red-500">*</span>
+              હાજરી રેજિસ્ટર સહી સિક્કા સાથે નો ફોટોગ્રાફ{" "}
+              <span className="text-red-500">*</span>
             </h4>
           </div>
 
@@ -479,7 +480,8 @@ export default function ReportForm() {
               >
                 <Upload className="h-8 w-8 text-gray-400" />
                 <span className="text-sm text-gray-600">
-                  ઓળખપત્ર ફોટો અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
+                  હાજરી રેજિસ્ટર સહી સિક્કા સાથે નો ફોટોગ્રાફ અપલોડ કરવા માટે
+                  ક્લિક કરો અથવા ખેંચો અને છોડો
                 </span>
                 <span className="text-xs text-gray-500">
                   PNG, JPG, JPEG દરેક 2MB સુધી
