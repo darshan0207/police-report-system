@@ -176,7 +176,7 @@ export default function ReportForm() {
 
       if (data.otherImage) {
         try {
-          const odakhImagesData = await uploadFile(data.otherImage);
+          const odakhImagesData = await uploadFile(data?.otherImage);
 
           data.otherImage = odakhImagesData; // Remove failed uploads
 
@@ -187,7 +187,6 @@ export default function ReportForm() {
       }
       // Append images
 
-      console.log("data", data);
       const response = await fetch("/api/reports", {
         method: "POST",
         body: JSON.stringify(data),
@@ -218,7 +217,7 @@ export default function ReportForm() {
       setLoading(false);
     }
   };
-  console.log("otherImage", otherImage);
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Date Field */}
