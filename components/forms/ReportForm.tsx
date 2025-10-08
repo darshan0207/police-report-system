@@ -13,12 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+// import { Textarea } from "@/components/ui/textarea";
 import { Upload, X } from "lucide-react";
 import { reportSchema, ReportFormData } from "@/lib/schemas/report";
 import { toast } from "sonner";
 import { uploadFile } from "@/lib/cloudinary";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 
 interface Unit {
   _id: string;
@@ -47,7 +47,7 @@ export default function ReportForm() {
   const [officers, setOfficers] = useState<Officer[]>([]);
   const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
   const [loading, setLoading] = useState(false);
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
 
   const {
     register,
@@ -379,7 +379,7 @@ export default function ReportForm() {
 
         {/* Remarks */}
 
-        {session?.user?.role === "admin" && (
+        {/* {session?.user?.role === "admin" && (
           <div>
             <Label htmlFor="remarks" className="mb-2">
               રિમાકસ
@@ -390,7 +390,7 @@ export default function ReportForm() {
               placeholder="કોઈપણ રિમાકસ દાખલ કરો..."
             />
           </div>
-        )}
+        )} */}
       </div>
 
       {/* Image Upload Section */}
