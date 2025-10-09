@@ -46,6 +46,11 @@ interface Officer {
   isActive: boolean;
 }
 
+interface Arrangement {
+  _id: string;
+  name: string;
+}
+
 export default function ReportEditForm({
   editDialogOpen,
   setEditDialogOpen,
@@ -59,6 +64,7 @@ export default function ReportEditForm({
   const [stations, setStations] = useState<PoliceStation[]>([]);
   const [officers, setOfficers] = useState<Officer[]>([]);
   const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
+  const [arrangementsData, setArrangementsData] = useState<Arrangement[]>([]);
   const [loading, setLoading] = useState(false);
 
   const {
@@ -75,6 +81,7 @@ export default function ReportEditForm({
       date: new Date(data.date).toISOString().slice(0, 10),
       unit: data?.unit?._id || "",
       policeStation: data?.policeStation?._id || "",
+      arrangement: data?.arrangement?._id || "",
       dutyType: data?.dutyType?._id || "",
       dutyCount: data?.dutyCount || 0,
       verifyingOfficer: data?.verifyingOfficer?._id || "",
@@ -93,11 +100,13 @@ export default function ReportEditForm({
       fetch("/api/police-stations").then((r) => r.json()),
       fetch("/api/duty-type").then((r) => r.json()),
       fetch("/api/officers").then((r) => r.json()),
-    ]).then(([u, p, d, o]) => {
+      fetch("/api/arrangements").then((r) => r.json()),
+    ]).then(([u, p, d, o, a]) => {
       setUnits(u);
       setStations(p);
       setDutyTypes(d);
       setOfficers(o.filter((officer: Officer) => officer.isActive));
+      setArrangementsData(a);
     });
   }, []);
 
@@ -108,7 +117,7 @@ export default function ReportEditForm({
       // Create FormData to handle file uploads
       console.log(val.images);
       // Append images
-
+      if (!val?.arrangement) val.arrangement = null;
       const response = await fetch(`/api/reports/${data._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -182,7 +191,7 @@ export default function ReportEditForm({
           <div className="border p-4 rounded-lg space-y-4">
             <h4 className="font-medium">રિપોર્ટ માટેની માહિતી દાખલ કરો</h4>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Unit */}
               <div>
                 <Label htmlFor="unit" className="mb-2">
@@ -239,6 +248,28 @@ export default function ReportEditForm({
                     {errors.policeStation.message}
                   </p>
                 )}
+              </div>
+
+              <div>
+                <Label htmlFor="arrangement" className="mb-2">
+                  બંદોબસ્તનો પ્રકાર
+                </Label>
+                <Select
+                  value={watch("arrangement") || ""}
+                  onValueChange={(value) => setValue("arrangement", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="બંદોબસ્તનો પ્રકાર પસંદ કરો" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={null}>કોઈ નહિ</SelectItem>
+                    {arrangementsData.map((item) => (
+                      <SelectItem key={item._id} value={item._id}>
+                        {item.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Duty Type */}

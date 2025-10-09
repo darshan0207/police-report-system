@@ -6,15 +6,17 @@ import UnitsTab from "./UnitsTab";
 import StationsTab from "./StationsTab";
 import OfficersTab from "./OfficersTab";
 import UsersTab from "./UsersTab";
+import ArrangementTab from "./ArrangementTab";
 
 export default function MasterDataManager() {
   return (
     <Tabs defaultValue="units">
-      <TabsList className="grid w-full md:grid-cols-1 lg:grid-cols-4">
+      <TabsList className="grid w-full md:grid-cols-1 lg:grid-cols-5">
         <TabsTrigger value="units">યુનિટ</TabsTrigger>
         <TabsTrigger value="stations">પોલીસ સ્ટેશન</TabsTrigger>
         <TabsTrigger value="officers">અધિકારી</TabsTrigger>
         {/* <TabsTrigger value="dutytypes">ફરજના પ્રકારો</TabsTrigger> */}
+        <TabsTrigger value="arrangements">બંદોબસ્ત</TabsTrigger>
         <TabsTrigger value="users">યુઝર</TabsTrigger>
       </TabsList>
 
@@ -28,6 +30,10 @@ export default function MasterDataManager() {
 
       <TabsContent value="officers">
         <OfficersTab />
+      </TabsContent>
+
+      <TabsContent value="arrangements">
+        <ArrangementTab />
       </TabsContent>
 
       {/* <TabsContent value="dutytypes">

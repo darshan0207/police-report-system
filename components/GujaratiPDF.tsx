@@ -234,6 +234,7 @@ const GujaratiPDF = ({ data, date }: { data: any[]; date: string }) => {
                 </Text>
                 <Text style={[styles.cell, styles.colName]}>
                   {item?.policeStation?.name}
+                  {item.arrangement?.name ? " / " + item.arrangement?.name : ""}
                 </Text>
                 <Text style={[styles.cell, styles.colDept]}>
                   {item.dutyType?.code === "day" ? 1 : ""}

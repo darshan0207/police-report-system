@@ -41,10 +41,16 @@ interface Officer {
   isActive: boolean;
 }
 
+interface Arrangement {
+  _id: string | null;
+  name: string;
+}
+
 export default function ReportForm() {
   const [units, setUnits] = useState<Unit[]>([]);
   const [stations, setStations] = useState<PoliceStation[]>([]);
   const [officers, setOfficers] = useState<Officer[]>([]);
+  const [arrangementsData, setArrangementsData] = useState<Arrangement[]>([]);
   const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
   const [loading, setLoading] = useState(false);
   // const { data: session } = useSession();
@@ -62,6 +68,7 @@ export default function ReportForm() {
       date: new Date().toISOString().slice(0, 10),
       unit: "",
       policeStation: "",
+      arrangement: "",
       dutyType: "",
       dutyCount: 0,
       verifyingOfficer: "",
@@ -80,11 +87,13 @@ export default function ReportForm() {
       fetch("/api/police-stations").then((r) => r.json()),
       fetch("/api/duty-type").then((r) => r.json()),
       fetch("/api/officers").then((r) => r.json()),
-    ]).then(([u, p, d, o]) => {
+      fetch("/api/arrangements").then((r) => r.json()),
+    ]).then(([u, p, d, o, a]) => {
       setUnits(u);
       setStations(p);
       setDutyTypes(d);
       setOfficers(o.filter((officer: Officer) => officer.isActive));
+      setArrangementsData(a);
     });
   }, []);
 
@@ -186,7 +195,7 @@ export default function ReportForm() {
         }
       }
       // Append images
-
+      if (!data?.arrangement) data.arrangement = null;
       const response = await fetch("/api/reports", {
         method: "POST",
         body: JSON.stringify(data),
@@ -199,6 +208,7 @@ export default function ReportForm() {
           date: new Date().toISOString().slice(0, 10),
           unit: "",
           policeStation: "",
+          arrangement: "",
           dutyType: "",
           dutyCount: null as any,
           verifyingOfficer: "",
@@ -242,7 +252,7 @@ export default function ReportForm() {
       <div className="border p-4 rounded-lg space-y-4">
         <h4 className="font-medium">રિપોર્ટ માટેની માહિતી દાખલ કરો</h4>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Unit */}
           <div>
             <Label htmlFor="unit" className="mb-2">
@@ -295,6 +305,28 @@ export default function ReportForm() {
                 {errors.policeStation.message}
               </p>
             )}
+          </div>
+
+          <div>
+            <Label htmlFor="arrangement" className="mb-2">
+              બંદોબસ્તનો પ્રકાર
+            </Label>
+            <Select
+              value={watch("arrangement") || ""}
+              onValueChange={(value) => setValue("arrangement", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="બંદોબસ્તનો પ્રકાર પસંદ કરો" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>કોઈ નહિ</SelectItem>
+                {arrangementsData.map((item) => (
+                  <SelectItem key={item._id} value={item._id}>
+                    {item.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Duty Type */}

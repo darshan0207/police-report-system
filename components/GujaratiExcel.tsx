@@ -101,7 +101,10 @@ export default function GujaratiExcel({
   const formattedData = data.map((item, index) => ({
     ક્રમ: index + 1,
     "ડિવિ / યુનિટ": item?.unit?.name || "",
-    "પોલીસ સ્ટેશન": item?.policeStation?.name || "",
+    "પોલીસ સ્ટેશન":
+      `${item?.policeStation?.name} ${
+        item.arrangement?.name ? " / " + item.arrangement?.name : ""
+      }` || "",
     "દિવસ ફરજ નાં પોલીસ સ્ટેશનોની કુલ સંખ્યા":
       item.dutyType?.code === "day" ? 1 : "",
     "રાત્રી ફરજ નાં પોલીસ સ્ટેશનોની કુલ સંખ્યા":
@@ -163,7 +166,7 @@ export default function GujaratiExcel({
   };
 
   return (
-    <Button variant="outline" onClick={exportToExcel}>
+    <Button variant="outline" className="mb-3" onClick={exportToExcel}>
       Excel ડાઉનલોડ કરો
     </Button>
   );

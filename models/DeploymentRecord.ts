@@ -4,6 +4,7 @@ export interface IDeploymentRecord extends Document {
   date: Date;
   unit: Types.ObjectId;
   policeStation: Types.ObjectId;
+  arrangement: Types.ObjectId;
   dutyType: Types.ObjectId;
   verifyingOfficer: Types.ObjectId;
   dutyCount: number;
@@ -22,6 +23,10 @@ const DeploymentRecordSchema = new Schema<IDeploymentRecord>(
       type: Schema.Types.ObjectId,
       ref: "PoliceStation",
       required: true,
+    },
+    arrangement: {
+      type: Schema.Types.ObjectId,
+      ref: "Arrangement",
     },
     dutyType: {
       type: Schema.Types.ObjectId,

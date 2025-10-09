@@ -7,6 +7,7 @@ import "@/models/Unit";
 import "@/models/PoliceStation";
 import "@/models/DutyType";
 import "@/models/Officer";
+import "@/models/Arrangement";
 
 export async function GET(request: NextRequest) {
   try {
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
         path: "unit",
         options: { sort: { name: 1 } },
       })
-      .populate("policeStation dutyType verifyingOfficer");
+      .populate("policeStation arrangement dutyType verifyingOfficer");
     return NextResponse.json(deployments);
   } catch (error) {
     console.error("Error updating user:", error);

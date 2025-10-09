@@ -13,15 +13,17 @@ import {
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import GujaratiExcel from "./GujaratiExcel";
-import { Download, Pencil } from "lucide-react";
+import { Download, Pencil, Trash2 } from "lucide-react";
 import ReportEditForm from "./forms/ReportEditForm";
 import PDFDownload from "./PDFDwnld";
+import { toast } from "sonner";
 
 interface DeploymentRecord {
   _id: string;
   date: string;
   unit: { _id: string; name: string };
   policeStation: { _id: string; name: string };
+  arrangement: { _id: string; name: string };
   dutyType: { _id: string; name: string; code: string };
   dutyCount: number;
   verifyingOfficer: {
@@ -61,17 +63,47 @@ export default function ReportsList() {
     fetchReports(selectedDate);
   }, [selectedDate]);
 
+  const deletePReports = async (id: string) => {
+    if (!confirm("શું તમે ખરેખર આ રિપોર્ટ કાઢી નાખવા માંગો છો? ")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/reports/${id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(
+          errorData?.error || `HTTP error! status: ${response.status}`
+        );
+      }
+      fetchReports(selectedDate);
+      toast.success("રિપોર્ટ સફળતાપૂર્વક કાઢી નાખ્યું");
+    } catch (error) {
+      console.error("Error deleting officer:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete officer"
+      );
+    }
+  };
+
   return (
     <>
       <div className="space-y-6">
-        <div className="flex gap-4 items-center">
+        <div className="flex-row lg:flex  gap-4 items-center">
           <Input
             type="date"
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-fit"
+            className="w-fit mb-3"
           />
-          <Button type="button" onClick={() => fetchReports(selectedDate)}>
+          <Button
+            type="button"
+            className="mb-3"
+            onClick={() => fetchReports(selectedDate)}
+          >
             રિપોર્ટ લોડ કરો
           </Button>
           {reports?.length > 0 && selectedDate && (
@@ -125,7 +157,12 @@ export default function ReportsList() {
                     {reports.map((report) => (
                       <TableRow key={report._id}>
                         <TableCell>{report.unit?.name}</TableCell>
-                        <TableCell>{report.policeStation?.name}</TableCell>
+                        <TableCell>
+                          {report.policeStation?.name}{" "}
+                          {report.arrangement?.name
+                            ? " / " + report.arrangement?.name
+                            : ""}
+                        </TableCell>
                         <TableCell>
                           {report.dutyType.code === "day" ? 1 : ""}
                         </TableCell>
@@ -261,6 +298,14 @@ export default function ReportsList() {
                             }}
                           >
                             <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => deletePReports(report._id)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>

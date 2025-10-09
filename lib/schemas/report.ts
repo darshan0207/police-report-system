@@ -5,6 +5,7 @@ export const reportSchema = z.object({
   date: z.string().min(1, "તારીખ જરૂરી છે"),
   unit: z.string().min(1, "યુનિટ જરૂરી છે"),
   policeStation: z.string().min(1, "પોલીસ સ્ટેશન જરૂરી છે"),
+  arrangement: z.string().nullable(),
   dutyType: z.string().min(1, "ફરજ પ્રકાર જરૂરી છે"),
   verifyingOfficer: z.string().min(1, "ચકાસણી અધિકારી જરૂરી છે"),
   dutyCount: z.number().min(1, "ફરજ ઉપર હાજર કુલ સંખ્યા જરૂરી છે"),
