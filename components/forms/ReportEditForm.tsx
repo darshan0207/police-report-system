@@ -76,7 +76,7 @@ export default function ReportEditForm({
     reset,
     getValues,
   } = useForm<ReportFormData>({
-    resolver: zodResolver(reportSchema),
+    resolver: zodResolver(reportSchema(true)),
     defaultValues: {
       date: new Date(data.date).toISOString().slice(0, 10),
       unit: data?.unit?._id || "",
@@ -158,6 +158,70 @@ export default function ReportEditForm({
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+
+    // Validate file types and sizes
+    const validFiles = files.filter((file) => {
+      const isValidType = file.type.startsWith("image/");
+      const isValidSize = file.size <= 2 * 1024 * 1024; // 2MB limit
+      // const isValidSize = file.size <= 200 * 1024; // 200kb limit
+
+      if (!isValidType) {
+        toast.error(`File ${file.name} is not an image`);
+        return false;
+      }
+      if (!isValidSize) {
+        toast.error(`File ${file.name} is too large (max 2MB)`);
+        return false;
+      }
+      return true;
+    });
+    setLoading(true);
+    const readers = validFiles.map(async (file) => await uploadFile(file));
+
+    Promise.all(readers).then((base64Images) => {
+      setValue("images", [...images, ...base64Images]);
+      setLoading(false);
+    });
+  };
+
+  const removeImage = (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setValue("images", newImages);
+  };
+  const handleNewImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) return;
+
+    const file = files[0];
+    const isValidType = file.type.startsWith("image/");
+    const isValidSize = file.size <= 2 * 1024 * 1024;
+
+    if (!isValidType) {
+      toast.error(`File ${file.name} is not an image`);
+      return;
+    }
+
+    if (!isValidSize) {
+      toast.error(`File ${file.name} is too large (max 2MB)`);
+      return;
+    }
+    setLoading(true);
+    const readers = await uploadFile(file);
+
+    setValue("otherImage", readers);
+    setLoading(false);
+    // Convert to base64 string
+  };
+
+  const removeNewImage = () => {
+    setValue("otherImage", "");
   };
 
   return (
@@ -365,68 +429,123 @@ export default function ReportEditForm({
               />
             </div>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Image Upload Section */}
+            <div className="border p-4 rounded-lg space-y-4">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">ફોટા અપલોડ કરો </h4>
+              </div>
 
-          {/* Image Upload Section */}
-          <div className="border p-4 rounded-lg space-y-4">
-            <div className="flex justify-between items-center">
-              <h4 className="font-medium">
-                ફોટા <span className="text-red-500">*</span>
-              </h4>
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <Input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <Label
+                    htmlFor="image-upload"
+                    className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+                  >
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      ફોટા અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      PNG, JPG, JPEG દરેક 2MB સુધી
+                    </span>
+                  </Label>
+                </div>
+                {loading && (
+                  <div className="text-xs text-gray-500">
+                    ફોટા અપલોડ થય રહયા છે
+                  </div>
+                )}
+                {/* Image Preview */}
+                {images.length > 0 && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {images.map((image, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={image}
+                          alt={`Upload ${index + 1}`}
+                          className="w-full h-24 object-contain rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="space-y-4">
-              {/* <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <Input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="hidden"
-                  id="image-upload"
-                />
-                <Label
-                  htmlFor="image-upload"
-                  className="cursor-pointer flex flex-col items-center justify-center space-y-2"
-                >
-                  <Upload className="h-8 w-8 text-gray-400" />
-                  <span className="text-sm text-gray-600">
-                    ફોટા અપલોડ કરવા માટે ક્લિક કરો અથવા ખેંચો અને છોડો
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    PNG, JPG, JPEG દરેક 2MB સુધી
-                  </span>
-                </Label>
+            <div className="border p-4 rounded-lg space-y-4">
+              <div className="flex justify-between items-center">
+                <h4 className="font-medium">
+                  હાજરી રેજિસ્ટર સહી સિક્કા સાથે નો ફોટોગ્રાફ{" "}
+                </h4>
               </div>
-              {errors.images && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.images.message}
-                </p>
-              )} */}
 
-              {/* Image Preview */}
-              {images.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {images.map((image, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={image}
-                        alt={`Upload ${index + 1}`}
-                        className="w-full h-24 object-contain rounded-lg"
-                      />
-                    </div>
-                  ))}
-                  <div className="relative group">
-                    <img
-                      src={otherImage}
-                      alt={`Upload`}
-                      className="w-full h-24 object-contain rounded-lg"
-                    />
-                  </div>
+              <div className="space-y-4">
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleNewImageUpload}
+                    className="hidden"
+                    id="image1-upload"
+                  />
+                  <Label
+                    htmlFor="image1-upload"
+                    className="cursor-pointer flex flex-col items-center justify-center space-y-2"
+                  >
+                    <Upload className="h-8 w-8 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      હાજરી રેજિસ્ટર સહી સિક્કા સાથે નો ફોટોગ્રાફ અપલોડ કરવા
+                      માટે ક્લિક કરો અથવા ખેંચો અને છોડો
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      PNG, JPG, JPEG દરેક 2MB સુધી
+                    </span>
+                  </Label>
                 </div>
-              )}
+                {loading && (
+                  <div className="text-xs text-gray-500">
+                    ફોટોગ્રાફ અપલોડ થય રહો છે
+                  </div>
+                )}
+
+                {/* Image Preview */}
+                {otherImage && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="relative group">
+                      <img
+                        src={otherImage}
+                        alt={`Upload preview`}
+                        className="w-full h-24 object-contain rounded-lg border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeNewImage()}
+                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-
           <Button type="submit" disabled={loading} className="w-full" size="lg">
             {loading ? "દૈનિક રિપોર્ટ સેવ થય રહો છે..." : "સેવ દૈનિક રિપોર્ટ"}
           </Button>

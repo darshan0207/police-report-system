@@ -13,12 +13,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// import { Textarea } from "@/components/ui/textarea";
+import { Textarea } from "@/components/ui/textarea";
 import { Upload, X } from "lucide-react";
 import { reportSchema, ReportFormData } from "@/lib/schemas/report";
 import { toast } from "sonner";
 import { uploadFile } from "@/lib/cloudinary";
-// import { useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 
 interface Unit {
   _id: string;
@@ -53,8 +53,9 @@ export default function ReportForm() {
   const [arrangementsData, setArrangementsData] = useState<Arrangement[]>([]);
   const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
   const [loading, setLoading] = useState(false);
-  // const { data: session } = useSession();
-
+  const { data: session } = useSession();
+  console.log("data", session);
+  const isAdmin = session?.user?.role === "admin";
   const {
     register,
     handleSubmit,
@@ -63,7 +64,7 @@ export default function ReportForm() {
     setValue,
     reset,
   } = useForm<ReportFormData>({
-    resolver: zodResolver(reportSchema),
+    resolver: zodResolver(reportSchema(isAdmin)),
     defaultValues: {
       date: new Date().toISOString().slice(0, 10),
       unit: "",
@@ -117,7 +118,23 @@ export default function ReportForm() {
       return true;
     });
 
-    setValue("images", [...images, ...validFiles]);
+    const readers = validFiles.map(
+      (file) =>
+        new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            if (event.target?.result) {
+              resolve(event.target.result as string);
+            }
+          };
+          reader.readAsDataURL(file);
+        })
+    );
+
+    Promise.all(readers).then((base64Images) => {
+      // Assuming `images` is current state or form value
+      setValue("images", [...images, ...base64Images]);
+    });
   };
 
   const removeImage = (index: number) => {
@@ -411,7 +428,7 @@ export default function ReportForm() {
 
         {/* Remarks */}
 
-        {/* {session?.user?.role === "admin" && (
+        {isAdmin && (
           <div>
             <Label htmlFor="remarks" className="mb-2">
               રિમાકસ
@@ -422,7 +439,7 @@ export default function ReportForm() {
               placeholder="કોઈપણ રિમાકસ દાખલ કરો..."
             />
           </div>
-        )} */}
+        )}
       </div>
 
       {/* Image Upload Section */}
@@ -430,7 +447,8 @@ export default function ReportForm() {
         <div className="border p-4 rounded-lg space-y-4">
           <div className="flex justify-between items-center">
             <h4 className="font-medium">
-              ફોટા અપલોડ કરો <span className="text-red-500">*</span>
+              ફોટા અપલોડ કરો{" "}
+              {!isAdmin && <span className="text-red-500">*</span>}
             </h4>
           </div>
 
@@ -469,7 +487,7 @@ export default function ReportForm() {
                 {images.map((image, index) => (
                   <div key={index} className="relative group">
                     <img
-                      src={URL.createObjectURL(image)}
+                      src={image}
                       alt={`Upload ${index + 1}`}
                       className="w-full h-24 object-contain rounded-lg"
                     />
@@ -480,9 +498,6 @@ export default function ReportForm() {
                     >
                       <X className="h-3 w-3" />
                     </button>
-                    <div className="text-xs text-gray-500 truncate mt-1">
-                      {image.name}
-                    </div>
                   </div>
                 ))}
               </div>
@@ -493,7 +508,7 @@ export default function ReportForm() {
           <div className="flex justify-between items-center">
             <h4 className="font-medium">
               હાજરી રેજિસ્ટર સહી સિક્કા સાથે નો ફોટોગ્રાફ{" "}
-              <span className="text-red-500">*</span>
+              {!isAdmin && <span className="text-red-500">*</span>}
             </h4>
           </div>
 
@@ -534,7 +549,6 @@ export default function ReportForm() {
                     src={otherImage}
                     alt={`Upload preview`}
                     className="w-full h-24 object-contain rounded-lg border"
-                    onLoad={(e) => URL.revokeObjectURL(e.target?.src)} // Clean up memory
                   />
                   <button
                     type="button"
