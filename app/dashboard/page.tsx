@@ -33,8 +33,8 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {role === "admin" && <AdminDashboard />}
-      {role === "user" && <UnitDashboard />}
+      {role === "admin" && <AdminDashboard role={role} />}
+      {role === "user" && <UnitDashboard role={role} />}
     </div>
   );
 }

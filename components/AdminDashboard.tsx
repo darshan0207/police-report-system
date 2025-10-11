@@ -15,7 +15,7 @@ import ReportForm from "./forms/ReportForm";
 import ReportsList from "./ReportsList";
 import MasterDataManager from "./MasterDataManager";
 
-export default function AdminDashboard() {
+export default function AdminDashboard({ role }: { role: string }) {
   const [activeTab, setActiveTab] = useState("reports");
 
   return (
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
               <CardDescription>આજના રિપોર્ટ માટે ડેટા દાખલ કરો</CardDescription>
             </CardHeader>
             <CardContent>
-              <ReportForm />
+              <ReportForm role={role} />
             </CardContent>
           </Card>
         </TabsContent>

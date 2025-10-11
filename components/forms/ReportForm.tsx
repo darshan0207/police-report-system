@@ -18,7 +18,6 @@ import { Upload, X } from "lucide-react";
 import { reportSchema, ReportFormData } from "@/lib/schemas/report";
 import { toast } from "sonner";
 import { uploadFile } from "@/lib/cloudinary";
-import { useSession } from "next-auth/react";
 
 interface Unit {
   _id: string;
@@ -46,25 +45,15 @@ interface Arrangement {
   name: string;
 }
 
-export default function ReportForm() {
+export default function ReportForm({ role = "user" }: { role: string }) {
   const [units, setUnits] = useState<Unit[]>([]);
   const [stations, setStations] = useState<PoliceStation[]>([]);
   const [officers, setOfficers] = useState<Officer[]>([]);
   const [arrangementsData, setArrangementsData] = useState<Arrangement[]>([]);
   const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
   const [loading, setLoading] = useState(false);
-  const { data: session, status } = useSession();
-  console.log("data", session);
 
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        લોડ કરી રહ્યું છે...
-      </div>
-    );
-  }
-
-  const isAdmin = session?.user?.role === "admin";
+  const isAdmin = role === "admin";
   const {
     register,
     handleSubmit,

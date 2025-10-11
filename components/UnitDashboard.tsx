@@ -4,7 +4,7 @@ import { signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import ReportForm from "./forms/ReportForm";
 
-export default function UnitDashboard() {
+export default function UnitDashboard({ role }: { role: string }) {
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -13,7 +13,7 @@ export default function UnitDashboard() {
           સાઇન આઉટ
         </Button>
       </div>
-      <ReportForm />
+      <ReportForm role={role} />
     </div>
   );
 }
