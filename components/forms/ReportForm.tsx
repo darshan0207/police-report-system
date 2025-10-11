@@ -53,8 +53,17 @@ export default function ReportForm() {
   const [arrangementsData, setArrangementsData] = useState<Arrangement[]>([]);
   const [dutyTypes, setDutyTypes] = useState<DutyType[]>([]);
   const [loading, setLoading] = useState(false);
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   console.log("data", session);
+
+  if (status === "loading") {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        લોડ કરી રહ્યું છે...
+      </div>
+    );
+  }
+
   const isAdmin = session?.user?.role === "admin";
   const {
     register,
