@@ -115,9 +115,9 @@ export default function ReportEditForm({
 
     try {
       // Create FormData to handle file uploads
-      console.log(val.images);
       // Append images
       if (!val?.arrangement) val.arrangement = null;
+      if (!val?.verifyingOfficer) val.verifyingOfficer = null;
       const response = await fetch(`/api/reports/${data._id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -368,7 +368,7 @@ export default function ReportEditForm({
               {/* Verifying Officer */}
               <div>
                 <Label htmlFor="verifyingOfficer" className="mb-2">
-                  ચકાસણી અધિકારી <span className="text-red-500">*</span>
+                  ચકાસણી અધિકારી
                 </Label>
                 <Select
                   value={watch("verifyingOfficer")}
@@ -380,6 +380,7 @@ export default function ReportEditForm({
                     <SelectValue placeholder="અધિકારી પસંદ કરો" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value={null}>કોઈ નહિ</SelectItem>
                     {officers.map((officer) => (
                       <SelectItem key={officer._id} value={officer._id}>
                         {officer.name}

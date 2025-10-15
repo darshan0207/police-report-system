@@ -16,10 +16,10 @@ export async function PUT(
   //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   // }
 
-  const body = await request.json();
   await connectDB();
 
   try {
+    const body = await request.json();
     const report = await DeploymentRecord.findByIdAndUpdate(params.id, body, {
       new: false,
       runValidators: true,
@@ -49,9 +49,10 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
+  request: Request,
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params; // ✅ must await pa
   // const session = await getServerSession(authOptions);
   // if (
   //   !session ||
@@ -64,7 +65,7 @@ export async function DELETE(
 
   try {
     // Delete the unit
-    const report = await DeploymentRecord.findByIdAndDelete(params.id);
+    const report = await DeploymentRecord.findByIdAndDelete(id);
 
     if (!report) {
       return NextResponse.json({ error: "Report not found" }, { status: 404 });

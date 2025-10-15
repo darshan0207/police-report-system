@@ -7,7 +7,9 @@ export const reportSchema = (isAdmin: boolean) =>
     policeStation: z.string().min(1, "પોલીસ સ્ટેશન જરૂરી છે"),
     arrangement: z.string().nullable(),
     dutyType: z.string().min(1, "ફરજ પ્રકાર જરૂરી છે"),
-    verifyingOfficer: z.string().min(1, "ચકાસણી અધિકારી જરૂરી છે"),
+    verifyingOfficer: isAdmin
+      ? z.string()
+      : z.string().min(1, "ચકાસણી અધિકારી જરૂરી છે"),
     dutyCount: z.number().min(1, "ફરજ ઉપર હાજર કુલ સંખ્યા જરૂરી છે"),
     remarks: z.string().optional(),
     images: isAdmin

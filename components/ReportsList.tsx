@@ -17,6 +17,13 @@ import { Download, Pencil, Trash2 } from "lucide-react";
 import ReportEditForm from "./forms/ReportEditForm";
 import PDFDownload from "./PDFDwnld";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DeploymentRecord {
   _id: string;
@@ -35,8 +42,15 @@ interface DeploymentRecord {
   otherImage: string | "";
 }
 
+interface Unit {
+  _id: string;
+  name: string;
+  type: string;
+}
+
 export default function ReportsList() {
   const [reports, setReports] = useState<DeploymentRecord[]>([]);
+  const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
@@ -46,10 +60,31 @@ export default function ReportsList() {
   );
   const [loading, setLoading] = useState(false);
 
+  const [units, setUnits] = useState<Unit[]>([]);
+
+  useEffect(() => {
+    fetchUnitData();
+  }, []);
+
+  const fetchUnitData = async () => {
+    try {
+      const unitsRes = await fetch("/api/units");
+
+      setUnits(await unitsRes.json());
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Failed to fetch data");
+    }
+  };
+
   const fetchReports = async (date?: string) => {
     setLoading(true);
     try {
-      const url = date ? `/api/reports?date=${date}` : "/api/reports";
+      const url = date
+        ? `/api/reports?date=${date}${
+            selectedUnit ? `&unit=${selectedUnit} ` : ""
+          }`
+        : "/api/reports";
       const response = await fetch(url);
       const data = await response?.json();
       setReports(data || []);
@@ -61,7 +96,7 @@ export default function ReportsList() {
   };
   useEffect(() => {
     fetchReports(selectedDate);
-  }, [selectedDate]);
+  }, [selectedDate, selectedUnit]);
 
   const deletePReports = async (id: string) => {
     if (!confirm("શું તમે ખરેખર આ રિપોર્ટ કાઢી નાખવા માંગો છો? ")) {
@@ -118,6 +153,22 @@ export default function ReportsList() {
             <CardTitle>રેકોર્ડ્સ</CardTitle>
           </CardHeader>
           <CardContent>
+            <Select
+              value={selectedUnit}
+              onValueChange={(value) => setSelectedUnit(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="યુનિટ પસંદ કરો" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>બધા યુનિટ</SelectItem>
+                {units.map((unit) => (
+                  <SelectItem key={unit._id} value={unit._id}>
+                    {unit.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             {loading ? (
               <div className="text-center py-4">લોડ કરી રહ્યું છે...</div>
             ) : reports.length === 0 ? (
@@ -125,7 +176,7 @@ export default function ReportsList() {
                 પસંદ કરેલી તારીખ માટે કોઈ રિપોર્ટ મળ્યો નથી
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto mt-5">
                 <Table>
                   <TableHeader>
                     <TableRow>

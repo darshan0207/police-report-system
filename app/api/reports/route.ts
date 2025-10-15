@@ -19,9 +19,11 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const date = searchParams.get("date");
+    const unit = searchParams?.get("unit");
 
     const filter: any = {};
     if (date) filter.date = date;
+    if (unit) filter.unit = unit;
 
     const deployments = await DeploymentRecord.find(filter)
       .populate({

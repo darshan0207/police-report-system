@@ -36,7 +36,6 @@ const DeploymentRecordSchema = new Schema<IDeploymentRecord>(
     verifyingOfficer: {
       type: Schema.Types.ObjectId,
       ref: "Officer",
-      required: true,
     },
     dutyCount: { type: Number, default: 0 },
     images: [{ type: String }],

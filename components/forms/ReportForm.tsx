@@ -64,7 +64,7 @@ export default function ReportForm({ role = "user" }: { role: string }) {
   } = useForm<ReportFormData>({
     resolver: zodResolver(reportSchema(isAdmin)),
     defaultValues: {
-      date: new Date().toISOString().slice(0, 10),
+      date: "",
       unit: "",
       policeStation: "",
       arrangement: "",
@@ -211,6 +211,7 @@ export default function ReportForm({ role = "user" }: { role: string }) {
       }
       // Append images
       if (!data?.arrangement) data.arrangement = null;
+      if (!data?.verifyingOfficer) data.verifyingOfficer = null;
       const response = await fetch("/api/reports", {
         method: "POST",
         body: JSON.stringify(data),
@@ -220,7 +221,7 @@ export default function ReportForm({ role = "user" }: { role: string }) {
         toast.success("રિપોર્ટ સફળતાપૂર્વક સેવ થાયો છે!");
         // Reset form
         reset({
-          date: new Date().toISOString().slice(0, 10),
+          date: "",
           unit: "",
           policeStation: "",
           arrangement: "",
@@ -376,7 +377,8 @@ export default function ReportForm({ role = "user" }: { role: string }) {
           {/* Verifying Officer */}
           <div>
             <Label htmlFor="verifyingOfficer" className="mb-2">
-              ચકાસણી અધિકારી <span className="text-red-500">*</span>
+              ચકાસણી અધિકારી{" "}
+              {!isAdmin && <span className="text-red-500">*</span>}
             </Label>
             <Select
               value={watch("verifyingOfficer")}
@@ -388,6 +390,7 @@ export default function ReportForm({ role = "user" }: { role: string }) {
                 <SelectValue placeholder="અધિકારી પસંદ કરો" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={null}>કોઈ નહિ</SelectItem>
                 {officers.map((officer) => (
                   <SelectItem key={officer._id} value={officer._id}>
                     {officer.name}
