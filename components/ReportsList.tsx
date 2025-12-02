@@ -48,9 +48,15 @@ interface Unit {
   type: string;
 }
 
+interface PoliceStation {
+  _id: string;
+  name: string;
+}
+
 export default function ReportsList() {
   const [reports, setReports] = useState<DeploymentRecord[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<string | null>(null);
+  const [selectedStations, setSelectedStations] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(() =>
     new Date().toISOString().slice(0, 10)
   );
@@ -61,9 +67,11 @@ export default function ReportsList() {
   const [loading, setLoading] = useState(false);
 
   const [units, setUnits] = useState<Unit[]>([]);
+  const [stations, setStations] = useState<PoliceStation[]>([]);
 
   useEffect(() => {
     fetchUnitData();
+    fetchPoliceStationData();
   }, []);
 
   const fetchUnitData = async () => {
@@ -77,13 +85,23 @@ export default function ReportsList() {
     }
   };
 
+  const fetchPoliceStationData = async () => {
+    try {
+      const stationsRes = await fetch("/api/police-stations");
+      setStations(await stationsRes.json());
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Failed to fetch data");
+    }
+  };
+
   const fetchReports = async (date?: string) => {
     setLoading(true);
     try {
       const url = date
         ? `/api/reports?date=${date}${
-            selectedUnit ? `&unit=${selectedUnit} ` : ""
-          }`
+            selectedUnit ? `&unit=${selectedUnit}` : ""
+          }${selectedStations ? `&policeStation=${selectedStations}` : ""}`
         : "/api/reports";
       const response = await fetch(url);
       const data = await response?.json();
@@ -96,7 +114,7 @@ export default function ReportsList() {
   };
   useEffect(() => {
     fetchReports(selectedDate);
-  }, [selectedDate, selectedUnit]);
+  }, [selectedDate, selectedUnit, selectedStations]);
 
   const deletePReports = async (id: string) => {
     if (!confirm("શું તમે ખરેખર આ રિપોર્ટ કાઢી નાખવા માંગો છો? ")) {
@@ -153,22 +171,52 @@ export default function ReportsList() {
             <CardTitle>રેકોર્ડ્સ</CardTitle>
           </CardHeader>
           <CardContent>
-            <Select
-              value={selectedUnit}
-              onValueChange={(value) => setSelectedUnit(value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="યુનિટ પસંદ કરો" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>બધા યુનિટ</SelectItem>
-                {units.map((unit) => (
-                  <SelectItem key={unit._id} value={unit._id}>
-                    {unit.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex-row lg:flex  gap-4 items-center">
+              <Select
+                value={selectedUnit}
+                onValueChange={(value) => {
+                  setSelectedUnit(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="યુનિટ પસંદ કરો" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>બધા યુનિટ</SelectItem>
+                  {units.map((unit) => (
+                    <SelectItem key={unit._id} value={unit._id}>
+                      {unit.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={selectedStations}
+                onValueChange={(value) => setSelectedStations(value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="પોલીસ સ્ટેશન પસંદ કરો" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>બધા પોલીસ સ્ટેશન</SelectItem>
+                  {stations.map((station) => (
+                    <SelectItem key={station._id} value={station._id}>
+                      {station.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <button
+                className="text-blue-600 underline cursor-pointer"
+                onClick={() => {
+                  setSelectedUnit(null);
+                  setSelectedStations(null);
+                }}
+              >
+                ફિલ્ટર રીસેટ કરો
+              </button>
+            </div>
             {loading ? (
               <div className="text-center py-4">લોડ કરી રહ્યું છે...</div>
             ) : reports.length === 0 ? (
@@ -230,7 +278,13 @@ export default function ReportsList() {
                                   className="relative group inline-block mr-2"
                                 >
                                   <img
-                                    src={image}
+                                    src={
+                                      image ? image : "/no-image-available.jpg"
+                                    }
+                                    onError={(e) => {
+                                      e.currentTarget.src =
+                                        "/no-image-available.jpg";
+                                    }}
                                     alt={`image ${index + 1}`}
                                     className="w-12 h-12 object-contain rounded-lg border border-gray-200 transition-transform duration-200 group-hover:scale-105"
                                   />
@@ -251,6 +305,10 @@ export default function ReportsList() {
                                 <div className="relative group inline-block mr-2">
                                   <img
                                     src={report?.otherImage}
+                                    onError={(e) => {
+                                      e.currentTarget.src =
+                                        "/no-image-available.jpg";
+                                    }}
                                     alt={`image`}
                                     className="w-12 h-12 object-contain rounded-lg border border-gray-200 transition-transform duration-200 group-hover:scale-105"
                                   />
@@ -285,6 +343,10 @@ export default function ReportsList() {
                                 >
                                   <img
                                     src={image}
+                                    onError={(e) => {
+                                      e.currentTarget.src =
+                                        "/no-image-available.jpg";
+                                    }}
                                     alt={`image ${index + 1}`}
                                     className="w-12 h-12 object-contain rounded-lg border border-gray-200 transition-transform duration-200 group-hover:scale-105"
                                   />
@@ -305,6 +367,10 @@ export default function ReportsList() {
                                 <div className="relative group inline-block mr-2">
                                   <img
                                     src={report?.otherImage}
+                                    onError={(e) => {
+                                      e.currentTarget.src =
+                                        "/no-image-available.jpg";
+                                    }}
                                     alt={`image`}
                                     className="w-12 h-12 object-contain rounded-lg border border-gray-200 transition-transform duration-200 group-hover:scale-105"
                                   />
